@@ -3,8 +3,8 @@ package work.trade.user.controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import work.trade.user.dto.UserCreateRequestDto;
-import work.trade.user.dto.UserDto;
+import work.trade.user.dto.request.UserCreateRequestDto;
+import work.trade.user.dto.response.UserDto;
 
 @RestController
 @RequestMapping("/test")
