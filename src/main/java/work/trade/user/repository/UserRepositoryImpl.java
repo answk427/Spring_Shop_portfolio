@@ -5,7 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import work.trade.user.domain.User;
-import work.trade.user.dto.UserUpdateDto;
+import work.trade.user.dto.request.UserUpdateDto;
 
 import java.util.Optional;
 
