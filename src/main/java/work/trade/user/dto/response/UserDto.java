@@ -1,4 +1,4 @@
-package work.trade.user.dto;
+package work.trade.user.dto.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,7 @@ public class UserDto {
     private Long id;
     private String email;
     private String name;
-    private String authProviderName;
+    private AuthProviderDto authProvider;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

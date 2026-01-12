@@ -1,4 +1,4 @@
-package work.trade.user.dto;
+package work.trade.user.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
