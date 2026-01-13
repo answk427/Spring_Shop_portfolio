@@ -16,7 +16,7 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     //판매자
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,6 +43,6 @@ public class Product {
     //레코드 생성/업데이트 시 자동갱신
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 }
