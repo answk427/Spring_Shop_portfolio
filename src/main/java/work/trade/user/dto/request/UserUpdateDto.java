@@ -23,17 +23,4 @@ public class UserUpdateDto {
 
     @Size(max = 100, message = "이름은 100자를 초과할 수 없습니다")
     private String name;
-
-    public void updateEntity(User user) {
-        if (email != null)      user.setEmail(email);
-        if (password != null)   user.setPasswordHash(convertPassword(password));
-        if (name != null)       user.setName(name);
-
-        user.setUpdatedAt(LocalDateTime.now());
-    }
-
-    //아직 미구현
-    private String convertPassword(String password) {
-        return null;
-    }
 }

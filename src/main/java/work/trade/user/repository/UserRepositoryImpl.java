@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserUpdateDto;
+import work.trade.user.mapper.UserMapper;
 
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ public class UserRepositoryImpl implements UserRepository{
 
     @PersistenceContext
     private final EntityManager em;
+
+    private final UserMapper userMapper;
 
     @Override
     public User save(User user) {
@@ -30,8 +33,8 @@ public class UserRepositoryImpl implements UserRepository{
 
     @Override
     public void update(Long userId, UserUpdateDto updateDto) {
-        User user = em.find(User.class, userId); 
-        updateDto.updateEntity(user);
+        User user = em.find(User.class, userId);
+        userMapper.updateEntityFromDto(updateDto, user);
     }
 
     @Override
