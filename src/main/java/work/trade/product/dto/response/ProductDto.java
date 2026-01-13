@@ -1,11 +1,9 @@
-package work.trade.product.dto;
+package work.trade.product.dto.response;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import work.trade.product.domain.Category;
-import work.trade.user.domain.User;
+import work.trade.user.dto.response.SellerDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,12 +11,17 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ProductSummaryDto {
-    private Long id;
+public class ProductDto {
+    private long id;
+
+    private SellerDto seller;
+    private CategoryDto category;
+
     private String name;
+    private String description;
     private BigDecimal price;
     private Integer stock;
-    private String categoryName;
-    private String sellerName;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

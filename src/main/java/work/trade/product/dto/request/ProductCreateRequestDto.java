@@ -1,4 +1,4 @@
-package work.trade.product.dto;
+package work.trade.product.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;
