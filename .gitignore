@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/main/generated/work/trade/product/mapper/CategoryMapperImpl.java
+/src/main/generated/work/trade/product/mapper/ProductMapperImpl.java
+/src/main/generated/work/trade/user/mapper/AuthProviderMapperImpl.java
+/src/main/generated/work/trade/user/mapper/UserMapperImpl.java
