@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: trade
+
+  messages:
+    basename: messages,errors
+
+  profiles:
+    active: local
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/study_trade?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: asdf
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+---
+server:
+  port: 8081
