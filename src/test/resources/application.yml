@@ -2,19 +2,18 @@ spring:
   profiles:
     active: test
 
----
-datasource:
-  url: jdbc:mysql://localhost:3306/study_trade?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-  username: root
-  password: asdf
-  driver-class-name: com.mysql.cj.jdbc.Driver
+  datasource:
+    url: jdbc:mysql://localhost:3306/study_trade?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: asdf
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
----
-spring:
   jpa:
     hibernate:
       ddl-auto: validate
 
+  flyway:
+    enabled: true
 ---
 logging:
   level:
