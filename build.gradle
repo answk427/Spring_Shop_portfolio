@@ -41,6 +41,10 @@ dependencies {
 	//Lombok-MapStruct Binding
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
+	//flyway
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	//-----------test
