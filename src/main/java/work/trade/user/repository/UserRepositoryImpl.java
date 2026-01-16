@@ -15,7 +15,7 @@ import java.util.Optional;
 public class UserRepositoryImpl implements UserRepository{
 
     @PersistenceContext
-    private final EntityManager em;
+    private EntityManager em;
 
     private final UserMapper userMapper;
 
