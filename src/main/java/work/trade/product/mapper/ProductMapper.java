@@ -15,9 +15,12 @@ public interface ProductMapper {
 
 //Request -> Entity
 //-------------------------------------//
+
+    //User, Category는 Service에서 처리
     Product toEntity(ProductCreateRequestDto dto);
 
     @Mapping(target = "id", ignore = true)
+    //Category는 Service에서 처리
     Product updateEntityFromDto(ProductUpdateDto dto, @MappingTarget Product product);
 
 //Entity -> Response
