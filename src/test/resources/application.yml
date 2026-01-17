@@ -14,9 +14,9 @@ spring:
 
   flyway:
     enabled: true
----
-logging:
-  level:
-    org:
-      springframework:
-        jdbc: debug
+
+  logging:
+    level:
+      org:
+        springframework:
+          jdbc: debug
