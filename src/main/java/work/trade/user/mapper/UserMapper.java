@@ -17,6 +17,7 @@ public interface UserMapper {
 //Request -> Entity
 //-------------------------------------//
     User toEntity(UserCreateRequestDto dto);
+    //Password는 서비스에서 Hash로 변경
     User updateEntityFromDto(UserUpdateDto dto, @MappingTarget User user);
 
 //Entity -> Response
