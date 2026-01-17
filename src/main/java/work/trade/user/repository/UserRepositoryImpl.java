@@ -1,6 +1,7 @@
 package work.trade.user.repository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -32,16 +33,20 @@ public class UserRepositoryImpl implements UserRepository{
     }
 
     @Override
-    public void update(Long userId, UserUpdateDto updateDto) {
+    public User update(Long userId, UserUpdateDto updateDto) {
         User user = em.find(User.class, userId);
-        userMapper.updateEntityFromDto(updateDto, user);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with id: " + userId);
+        }
+        return userMapper.updateEntityFromDto(updateDto, user);
     }
 
     @Override
     public void delete(Long id) {
-         User user = em.find(User.class, id);
-        if (user != null) {
-            em.remove(user);
+        User user = em.find(User.class, id);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with id: " + id);
         }
+        em.remove(user);
     }
 }
