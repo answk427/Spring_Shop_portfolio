@@ -1,30 +1,31 @@
 CREATE TABLE auth_providers(
     code            varchar(20)     NOT NULL,
-    name            varchar(50)    NOT NULL,
+    name            varchar(50)     NOT NULL,
     description     text,
     PRIMARY KEY(code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE users(
-    id            bigint        NOT NULL AUTO_INCREMENT,
-    email         varchar(100)  NOT NULL,
+    id            bigint UNSIGNED   NOT NULL AUTO_INCREMENT,
+    email         varchar(100)      NOT NULL,
     password_hash varchar(255),
     auth_provider varchar(20),
     name          varchar(100),
-    created_at    datetime      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    datetime      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at    datetime          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    datetime          NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY   (id),
     UNIQUE KEY    email (email),
-    CONSTRAINT    fk_auth_provider FOREIGN KEY (auth_provider)
+    CONSTRAINT    fk_auth_provider
+        FOREIGN KEY (auth_provider)
         REFERENCES auth_providers (code)
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE categories(
-    id            bigint        NOT NULL AUTO_INCREMENT,
-    parent_id     bigint,
-    name          varchar(100)  NOT NULL,
+    id            bigint UNSIGNED   NOT NULL AUTO_INCREMENT,
+    parent_id     bigint UNSIGNED,
+    name          varchar(100)      NOT NULL,
     PRIMARY KEY   (id),
     CONSTRAINT fk_categories_parent
         FOREIGN KEY (parent_id)
@@ -34,13 +35,13 @@ CREATE TABLE categories(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE products(
-    id              bigint          NOT NULL AUTO_INCREMENT,
-    seller_id       bigint          NOT NULL,
-    category_id     bigint          NOT NULL,
+    id              bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+    seller_id       bigint UNSIGNED NOT NULL,
+    category_id     bigint UNSIGNED NOT NULL,
     name            varchar(100)    NOT NULL,
     description     text,
-    price           decimal(10,2)   NOT NULL,
-    stock           int             NOT NULL,
+    price           decimal(10,2)   NOT NULL CHECK (price >= 0),
+    stock           int UNSIGNED    NOT NULL,
     created_at      datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY     (id),
@@ -65,12 +66,12 @@ CREATE TABLE order_status(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE orders(
-    id              bigint          NOT NULL AUTO_INCREMENT,
-    buyer_id        bigint          NOT NULL,
-    product_id      bigint          NOT NULL,
-    quantity        int             NOT NULL,
-    unit_price      decimal(10,2)   NOT NULL,
-    total_price     decimal(10,2)   NOT NULL,
+    id              bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+    buyer_id        bigint UNSIGNED NOT NULL,
+    product_id      bigint UNSIGNED NOT NULL,
+    quantity        int UNSIGNED    NOT NULL,
+    unit_price      decimal(10,2)   NOT NULL CHECK (unit_price >= 0),
+    total_price     decimal(10,2)   NOT NULL CHECK (total_price >= 0),
     status_code     varchar(20)     NOT NULL,
     created_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -97,10 +98,10 @@ CREATE TABLE orders(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE carts(
-    id          bigint      NOT NULL AUTO_INCREMENT,
-    user_id     bigint      NOT NULL,
-    product_id  bigint      NOT NULL,
-    quantity    int         NOT NULL,
+    id          bigint UNSIGNED    NOT NULL AUTO_INCREMENT,
+    user_id     bigint UNSIGNED    NOT NULL,
+    product_id  bigint UNSIGNED    NOT NULL,
+    quantity    int UNSIGNED       NOT NULL,
     created_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -120,11 +121,11 @@ CREATE TABLE carts(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE wallets(
-    id  bigint  NOT NULL AUTO_INCREMENT,
-    user_id bigint  NOT NULL,
-    balance decimal(10,2)   NOT NULL,
-    created_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id          bigint UNSIGNED  NOT NULL AUTO_INCREMENT,
+    user_id     bigint UNSIGNED  NOT NULL,
+    balance     decimal(10,2)    NOT NULL CHECK (balance >= 0),
+    created_at  timestamp        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  timestamp        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
     UNIQUE      (user_id),
@@ -145,12 +146,12 @@ CREATE TABLE account_record_type(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE account_records(
-    id            bigint        NOT NULL AUTO_INCREMENT,
-    wallet_id     bigint        NOT NULL,
-    type          varchar(20)   NOT NULL,
-    amount        decimal(10,2) NOT NULL,
-    created_at    timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id            bigint UNSIGNED        NOT NULL AUTO_INCREMENT,
+    wallet_id     bigint UNSIGNED        NOT NULL,
+    type          varchar(20)            NOT NULL,
+    amount        decimal(10,2)          NOT NULL CHECK (amount >= 0),
+    created_at    timestamp              NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    timestamp              NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
 
@@ -168,13 +169,13 @@ CREATE TABLE account_records(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE product_comments(
-    id            bigint     NOT NULL AUTO_INCREMENT,
-    product_id    bigint     NOT NULL,
-    user_id       bigint     NOT NULL,
+    id            bigint UNSIGNED     NOT NULL AUTO_INCREMENT,
+    product_id    bigint UNSIGNED     NOT NULL,
+    user_id       bigint UNSIGNED     NOT NULL,
     comment       text,
-    rating        tinyint    NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    created_at    timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    rating        tinyint             NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at    timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
 
