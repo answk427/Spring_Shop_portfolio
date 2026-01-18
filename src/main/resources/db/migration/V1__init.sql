@@ -56,3 +56,141 @@ CREATE TABLE products(
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE order_status(
+    code            varchar(20)  NOT NULL,
+    name            varchar(50)  NOT NULL,
+    description     text,
+    PRIMARY KEY (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE orders(
+    id              bigint          NOT NULL AUTO_INCREMENT,
+    buyer_id        bigint          NOT NULL,
+    product_id      bigint          NOT NULL,
+    quantity        int             NOT NULL,
+    unit_price      decimal(10,2)   NOT NULL,
+    total_price     decimal(10,2)   NOT NULL,
+    status_code     varchar(20)     NOT NULL,
+    created_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_orders_buyer
+        FOREIGN KEY (buyer_id)
+        REFERENCES users (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_orders_product
+        FOREIGN KEY (product_id)
+        REFERENCES products (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_orders_status
+        FOREIGN KEY (status_code)
+        REFERENCES  order_status (code)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE carts(
+    id          bigint      NOT NULL AUTO_INCREMENT,
+    user_id     bigint      NOT NULL,
+    product_id  bigint      NOT NULL,
+    quantity    int         NOT NULL,
+    created_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_carts_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_carts_product
+        FOREIGN KEY (product_id)
+        REFERENCES products (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE wallets(
+    id  bigint  NOT NULL AUTO_INCREMENT,
+    user_id bigint  NOT NULL,
+    balance decimal(10,2)   NOT NULL,
+    created_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    UNIQUE      (user_id),
+
+    CONSTRAINT fk_wallets_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE account_record_type(
+    code            varchar(20)     NOT NULL,
+    name            varchar(50)     NOT NULL,
+    description     text,
+
+    PRIMARY KEY (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE account_records(
+    id            bigint        NOT NULL AUTO_INCREMENT,
+    wallet_id     bigint        NOT NULL,
+    type          varchar(20)   NOT NULL,
+    amount        decimal(10,2) NOT NULL,
+    created_at    timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_account_records_wallet
+        FOREIGN KEY (wallet_id)
+        REFERENCES wallets (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_account_records_type
+        FOREIGN KEY (type)
+        REFERENCES account_record_type (code)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE product_comments(
+    id            bigint     NOT NULL AUTO_INCREMENT,
+    product_id    bigint     NOT NULL,
+    user_id       bigint     NOT NULL,
+    comment       text,
+    rating        tinyint    NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at    timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_product_comments_product
+        FOREIGN KEY (product_id)
+        REFERENCES products (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_product_comments_user
+        FOREIGN KEY (user_id)
+        REFERENCES  users (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT uq_product_user
+        UNIQUE (product_id, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
