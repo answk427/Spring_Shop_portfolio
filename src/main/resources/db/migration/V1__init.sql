@@ -106,6 +106,7 @@ CREATE TABLE carts(
     updated_at  timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id),
+    UNIQUE KEY (user_id, product_id),
 
     CONSTRAINT fk_carts_user
         FOREIGN KEY (user_id)
