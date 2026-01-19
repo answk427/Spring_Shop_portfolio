@@ -3,6 +3,7 @@ package work.trade.user.mapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserCreateRequestDto;
@@ -22,21 +23,23 @@ class UserMapperTest {
     private UserMapper mapper;
 
     private User getTestUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("aaa@bbb.com");
-        user.setName("홍길동");
-        user.setPasswordHash("TempHashPassword");
+        AuthProvider provider = AuthProvider.builder()
+                .code("google")
+                .name("Google")
+                .description("설명")
+                .build();
 
+        User user = User.builder()
+                .email("aaa@bbb.com")
+                .name("홍길동")
+                .passwordHash("TempHashPassword")
+                .authProvider(provider)
+                .build();
+        ReflectionTestUtils.setField(user, "id", 1L);
         LocalDateTime now = LocalDateTime.now();
-        user.setCreatedAt(now);
-        user.setUpdatedAt(now);
+        ReflectionTestUtils.setField(user, "createdAt", now);
+        ReflectionTestUtils.setField(user, "updatedAt", now);
 
-        AuthProvider provider = new AuthProvider();
-        provider.setCode("google");
-        provider.setName("Google");
-        provider.setDescription("설명");
-        user.setAuthProvider(provider);
         return user;
     }
 
@@ -67,10 +70,12 @@ class UserMapperTest {
     @Test
     void updateEntityFromDto() {
         // given
-        User user = new User();
-        user.setEmail("old@example.com");
-        user.setPasswordHash("OLD_HASH");
-        user.setName("Old User");
+
+        User user = User.builder()
+                    .email("old@example.com")
+                    .passwordHash("OLD_HASH")
+                    .name("Old User")
+                    .build();
 
         UserUpdateDto dto = new UserUpdateDto();
         dto.setEmail("new@example.com");
@@ -78,7 +83,7 @@ class UserMapperTest {
         dto.setPassword("newpass!!!"); // passwordHash는 ignore되어야 함
 
         // when
-        mapper.updateEntityFromDto(dto, user);
+        user.updateFromDto(dto);
 
         // then
         assertThat(user.getEmail()).isEqualTo("new@example.com");

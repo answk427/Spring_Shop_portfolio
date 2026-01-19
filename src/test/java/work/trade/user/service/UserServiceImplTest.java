@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
+import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.AuthProviderDto;
 import work.trade.user.dto.response.UserDto;
@@ -57,36 +58,34 @@ class UserServiceImplTest {
     private static final String testApCode = "TestAuthProviderCode";
     private static final String testApName = "TestAuthProviderName";
     private static final String testApDesc = "TestAuthProviderDescription";
-
+    private String testApId = null;
 //------------------------------------------------------------------//
     @BeforeEach
     @Transactional
     void InitData() {
-        AuthProvider authProvider = new AuthProvider();
-        authProvider.setCode(testApCode);
-        authProvider.setName(testApName);
-        authProvider.setDescription(testApDesc);
+        AuthProvider authProvider = AuthProvider.builder()
+                .code(testApCode)
+                .name(testApName)
+                .description(testApDesc)
+                .build();
 
         AuthProvider saved = apRepo.save(authProvider);
+        testApId = saved.getCode();
 
         testUserId = createTestUser(testUserName, testUserEmail, testPassword).getId();
     }
 
     @Transactional
     UserDto createTestUser(String name, String email, String password) {
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setPasswordHash(password);
+        AuthProvider referenceById = apRepo.getReferenceById(testApId);
 
-        AuthProvider authProvider = new AuthProvider();
-        authProvider.setCode(testApCode);
-        authProvider.setName(testApName);
-        authProvider.setDescription(testApDesc);
+        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
+        createRequestDto.setName(name);
+        createRequestDto.setEmail(email);
+        createRequestDto.setPassword(password);
+        createRequestDto.setAuthProviderId(referenceById.getCode());
 
-        user.setAuthProvider(authProvider);
-
-        UserDto userDto = userService.createUser(user);
+        UserDto userDto = userService.createUser(createRequestDto);
         em.flush();
         em.clear();
 
