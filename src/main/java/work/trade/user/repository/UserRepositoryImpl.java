@@ -33,20 +33,7 @@ public class UserRepositoryImpl implements UserRepository{
     }
 
     @Override
-    public User update(Long userId, UserUpdateDto updateDto) {
-        User user = em.find(User.class, userId);
-        if (user == null) {
-            throw new EntityNotFoundException("User not found with id: " + userId);
-        }
-        return userMapper.updateEntityFromDto(updateDto, user);
-    }
-
-    @Override
-    public void delete(Long id) {
-        User user = em.find(User.class, id);
-        if (user == null) {
-            throw new EntityNotFoundException("User not found with id: " + id);
-        }
+    public void delete(User user) {
         em.remove(user);
     }
 }

@@ -1,18 +1,26 @@
 package work.trade.user.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.mapstruct.MappingTarget;
+import work.trade.user.dto.request.UserUpdateDto;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
-@NoArgsConstructor
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
+
+    @Builder
+    public User(String email, String passwordHash, AuthProvider authProvider, String name) {
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.authProvider = authProvider;
+        this.name = name;
+    }
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,4 +44,15 @@ public class User {
     private LocalDateTime createdAt;
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+
+    public void updateFromDto(UserUpdateDto dto) {
+        //password는 서비스에서 Hash로 변환 후 변경
+        name = dto.getName();
+        email = dto.getEmail();
+    }
+
+    public void updatePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 }

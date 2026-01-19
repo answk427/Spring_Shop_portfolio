@@ -11,6 +11,5 @@ public interface UserRepository {
     //CRUD
     public User save(User user);
     public Optional<User> findById(Long id);
-    public User update(Long userId, UserUpdateDto updateDto);
-    public void delete(Long id);
+    public void delete(User user);
 }

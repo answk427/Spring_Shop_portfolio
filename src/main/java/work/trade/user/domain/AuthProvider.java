@@ -1,14 +1,21 @@
 package work.trade.user.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "auth_providers")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AuthProvider {
+
+    @Builder
+    private AuthProvider(String code, String name, String description) {
+        this.code = code;
+        this.name = name;
+        this.description = description;
+    }
+
     @Id
     @Column(length = 20)
     String code;
@@ -19,3 +26,5 @@ public class AuthProvider {
     @Column(columnDefinition="TEXT")
     String description;
 }
+
+
