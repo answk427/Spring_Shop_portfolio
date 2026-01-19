@@ -34,9 +34,7 @@ public class ProductServiceImpl implements ProductService {
         User seller = userRepository.findById(dto.getSellerId()).orElseThrow(() -> new RuntimeException("유저 없음"));
         Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new RuntimeException("카테고리 없음"));
 
-        Product product = mapper.toEntity(dto);
-        product.setSeller(seller);
-        product.setCategory(category);
+        Product product = mapper.toEntity(dto, seller, category);
 
         Product savedProduct = productRepository.save(product);
         return mapper.toDto(savedProduct);
@@ -49,12 +47,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductUpdateDto dto) {
-        //추후 예외 수정
+        //커스텀예외로 추후 수정
         Product product = productRepository.findById(dto.getId()).orElseThrow(() -> new IllegalStateException("제품 없음: " + dto.getId()));
-        Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new IllegalStateException("카테고리 없음"));
+        if (!product.getId().equals(dto.getId())) {
+            throw new IllegalStateException("수정하려는 제품의 ID와 일치하지 않음");
+        }
 
-        mapper.updateEntityFromDto(dto, product);
-        product.setCategory(category);
+        Category updateCategory = categoryRepository.findById(dto.getCategoryId()).orElse(product.getCategory());
+        product.updateFromDto(dto, updateCategory);
 
         return mapper.toDto(product);
     }

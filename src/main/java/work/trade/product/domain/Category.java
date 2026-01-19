@@ -1,14 +1,19 @@
 package work.trade.product.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "categories")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Category {
+
+    @Builder
+    private Category(Category parent, String name) {
+        this.parent = parent;
+        this.name = name;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

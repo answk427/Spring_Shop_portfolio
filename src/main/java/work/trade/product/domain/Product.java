@@ -1,18 +1,29 @@
 package work.trade.product.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.mapstruct.MappingTarget;
+import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.user.domain.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "products")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
+
+    @Builder
+    private Product(User seller, Category category, String name, String description, BigDecimal price, Integer stock) {
+        this.seller = seller;
+        this.category = category;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stock = stock;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,4 +56,14 @@ public class Product {
     private LocalDateTime createdAt;
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+
+    public void updateFromDto(ProductUpdateDto dto, Category category) {
+        //카테고리는 서비스에서 검증
+        this.name = dto.getName();
+        this.price = dto.getPrice();
+        this.stock = dto.getStock();
+        this.description = dto.getDescription();
+        this.category = category;
+    }
 }
