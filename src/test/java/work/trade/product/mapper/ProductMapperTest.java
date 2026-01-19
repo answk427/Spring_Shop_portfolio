@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
@@ -25,26 +26,30 @@ class ProductMapperTest {
     private ProductMapper mapper;
 
     Product getTestProduct() {
-        Product product = new Product();
-        product.setId(1L);
-        product.setName("테스트제품");
-        product.setDescription("제품설명");
-        product.setPrice(BigDecimal.valueOf(111));
-        product.setStock(22);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        Category category = Category.builder()
+                .name("테스트카테고리")
+                .parent(null)
+                .build();
+        ReflectionTestUtils.setField(category, "id", 123L);
 
-        Category category = new Category();
-        category.setId(222L);
-        category.setName("테스트카테고리");
-        category.setParent(null);
+        User seller = User.builder()
+                .name("판매자")
+                .build();
+        ReflectionTestUtils.setField(seller, "id", 2234L);
 
-        product.setCategory(category);
+        Product product = Product.builder()
+                .name("테스트제품")
+                .description("제품설명")
+                .price(BigDecimal.valueOf(111))
+                .stock(22)
+                .category(category)
+                .seller(seller)
+                .build();
 
-        User seller = new User();
-        seller.setId(2234L);
-        seller.setName("판매자");
-        product.setSeller(seller);
+        ReflectionTestUtils.setField(product, "id", 1L);
+        LocalDateTime now = LocalDateTime.now();
+        ReflectionTestUtils.setField(product, "createdAt", now);
+        ReflectionTestUtils.setField(product, "updatedAt", now);
 
         return product;
     }
@@ -61,7 +66,7 @@ class ProductMapperTest {
         dto.setCategoryId(3131L);
 
         //when
-        Product entity = mapper.toEntity(dto);
+        Product entity = mapper.toEntity(dto, null, null);
 
         //then
         assertThat(entity.getId()).isNull();
@@ -94,7 +99,7 @@ class ProductMapperTest {
         dto.setStock(111);
 
         //when
-        mapper.updateEntityFromDto(dto, product);
+        product.updateFromDto(dto, product.getCategory());
 
         //then
         //id는 복사x

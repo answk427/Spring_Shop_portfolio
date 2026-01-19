@@ -20,7 +20,9 @@ import work.trade.product.repository.CategoryRepository;
 import work.trade.product.repository.ProductRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.domain.User;
+import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.response.SellerDto;
+import work.trade.user.dto.response.UserDto;
 import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
@@ -70,21 +72,23 @@ class ProductServiceImplTest {
     @Transactional
     void InitData() {
         // 테스트용 판매자 생성
-        User testSeller = new User();
-        testSeller.setName(testSellerName);
-        testSeller.setEmail(testSellerEmail);
-        testSeller.setPasswordHash(testSellerPassword);
-        userService.createUser(testSeller);
+        UserCreateRequestDto dto = new UserCreateRequestDto();
+        dto.setName(testSellerName);
+        dto.setEmail(testSellerEmail);
+        dto.setPassword(testSellerPassword);
+        UserDto testSeller = userService.createUser(dto);
         testUserId = testSeller.getId();
 
         // 테스트용 카테고리 생성
-        Category testCategory = new Category();
-        testCategory.setName(testCategoryName);
+        Category testCategory = Category.builder()
+                .name(testCategoryName)
+                .build();
         categoryRepository.save(testCategory);
         testCategoryId = testCategory.getId();
 
-        Category testCategory2 = new Category();
-        testCategory2.setName(testCategoryName2);
+        Category testCategory2 = Category.builder()
+                .name(testCategoryName2)
+                .build();
         categoryRepository.save(testCategory2);
         testCategoryId2 = testCategory2.getId();
     }
