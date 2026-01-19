@@ -11,8 +11,8 @@ CREATE TABLE users(
     password_hash varchar(255),
     auth_provider varchar(20),
     name          varchar(100),
-    created_at    datetime          NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    datetime          NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at    timestamp         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    timestamp         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY   (id),
     UNIQUE KEY    email (email),
     CONSTRAINT    fk_auth_provider
@@ -42,8 +42,8 @@ CREATE TABLE products(
     description     text,
     price           decimal(10,2)   NOT NULL CHECK (price >= 0),
     stock           int UNSIGNED    NOT NULL,
-    created_at      datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY     (id),
     CONSTRAINT fk_products_seller
         FOREIGN KEY (seller_id)
