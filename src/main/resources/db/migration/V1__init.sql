@@ -68,11 +68,8 @@ CREATE TABLE order_status(
 CREATE TABLE orders(
     id              bigint UNSIGNED NOT NULL AUTO_INCREMENT,
     buyer_id        bigint UNSIGNED NOT NULL,
-    product_id      bigint UNSIGNED NOT NULL,
-    quantity        int UNSIGNED    NOT NULL,
-    unit_price      decimal(10,2)   NOT NULL CHECK (unit_price >= 0),
-    total_price     decimal(10,2)   NOT NULL CHECK (total_price >= 0),
     status_code     varchar(20)     NOT NULL,
+    total_price     decimal(10,2)   NOT NULL CHECK (total_price >= 0),
     created_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -84,17 +81,34 @@ CREATE TABLE orders(
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    CONSTRAINT fk_orders_product
-        FOREIGN KEY (product_id)
-        REFERENCES products (id)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-
     CONSTRAINT fk_orders_status
         FOREIGN KEY (status_code)
         REFERENCES  order_status (code)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE order_items(
+    id  bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+    order_id    bigint  UNSIGNED    NOT NULL,
+    product_id  bigint  UNSIGNED    NOT NULL,
+    quantity    int UNSIGNED    NOT NULL,
+    unit_price  decimal(10,2)   NOT NULL CHECK (unit_price >= 0),
+    subtotal_price decimal(10,2)    NOT NULL CHECK (subtotal_price >= 0),
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_orders_items_order
+                FOREIGN KEY (order_id)
+                REFERENCES orders (id)
+                ON DELETE RESTRICT
+                ON UPDATE CASCADE,
+
+    CONSTRAINT fk_orders_items_product
+            FOREIGN KEY (product_id)
+            REFERENCES products (id)
+            ON DELETE RESTRICT
+            ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE carts(
