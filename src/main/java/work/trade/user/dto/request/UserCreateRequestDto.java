@@ -25,5 +25,5 @@ public class UserCreateRequestDto {
     @Size(max = 100, message = "이름은 100자를 초과할 수 없습니다")
     private String name;
 
-    private Long authProviderId; // 소셜 로그인 등
+    private String authProviderId; // 소셜 로그인 등
 }
