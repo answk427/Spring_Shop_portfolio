@@ -2,7 +2,6 @@ package work.trade.user.repository;
 
 
 import work.trade.user.domain.User;
-import work.trade.user.dto.request.UserUpdateDto;
 
 import java.util.Optional;
 

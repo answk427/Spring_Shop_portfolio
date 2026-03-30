@@ -1,12 +1,10 @@
 package work.trade.user.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import work.trade.user.domain.User;
-import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.mapper.UserMapper;
 
 import java.util.List;

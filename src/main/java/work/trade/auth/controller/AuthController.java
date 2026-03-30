@@ -2,11 +2,9 @@ package work.trade.auth.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.LoginResponseDto;
-import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.service.AuthService;
 
 @RestController

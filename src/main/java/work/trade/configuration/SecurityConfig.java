@@ -1,6 +1,5 @@
 package work.trade.configuration;
 
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
