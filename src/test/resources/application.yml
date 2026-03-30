@@ -20,3 +20,7 @@ spring:
       org:
         springframework:
           jdbc: debug
+
+jwt:
+  secret: imsi-secret-key-afwefw-70684-96928592834928349283492834928349283
+  expiration: 3600000 #24시간 (밀리초)
