@@ -1,0 +1,73 @@
+package work.trade.auth.filter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import work.trade.auth.jwt.JwtTokenUtil;
+import work.trade.auth.role.Role;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtTokenUtil jwtTokenUtil;
+
+    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil) {
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = extractTokenFromRequest(request);
+
+        // 유효한 토큰이 존재하는 경우
+        if (token != null && jwtTokenUtil.validateToken(token)) {
+            // 토큰에서 사용자 ID 추출
+            String userId = jwtTokenUtil.getUserIdFromToken(token);
+
+            //권한 추출
+            List<GrantedAuthority> authorities = getAuthority(token);
+
+            // Spring Security Context에 인증 정보 설정
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userId,
+                            null,
+                            authorities);
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        // 토큰이 없으면 그냥 진행 (공개 API나 로그인 페이지용)
+        filterChain.doFilter(request, response);
+    }
+
+    // Authorization 헤더에서 토큰 추출
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);  // "Bearer " 제거
+        }
+        return null;
+    }
+
+    // 유저의 권한 얻어오기
+    private List<GrantedAuthority> getAuthority(String token) {
+        List<String> roles = jwtTokenUtil.getRolesFromToken(token);
+
+        return roles.stream()
+                .map(Role::valueOf)
+                .map(role -> (GrantedAuthority) new SimpleGrantedAuthority(role.getAuthority()))
+                .toList();
+    }
+}
