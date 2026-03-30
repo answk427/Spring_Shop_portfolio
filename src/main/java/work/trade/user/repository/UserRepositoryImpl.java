@@ -9,6 +9,7 @@ import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.mapper.UserMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -30,6 +31,16 @@ public class UserRepositoryImpl implements UserRepository{
     public Optional<User> findById(Long id) {
         User findUser = em.find(User.class, id);
         return Optional.ofNullable(findUser);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        List<User> findUser = em.createQuery(
+                        "SELECT u FROM User u WHERE u.email = :email", User.class)
+                .setParameter("email", email)
+                .getResultList();
+
+        return findUser.stream().findFirst();
     }
 
     @Override
