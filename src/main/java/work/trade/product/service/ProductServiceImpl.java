@@ -9,10 +9,12 @@ import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.request.ProductUpdateDto;
+import work.trade.product.exception.ProductNotFoundException;
 import work.trade.product.mapper.ProductMapper;
 import work.trade.product.repository.CategoryRepository;
 import work.trade.product.repository.ProductRepository;
 import work.trade.user.domain.User;
+import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.repository.UserRepository;
 
 import java.util.Optional;
@@ -30,8 +32,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto createProduct(ProductCreateRequestDto dto) {
-        //추후 커스텀 예외로 변경할 것
-        User seller = userRepository.findById(dto.getSellerId()).orElseThrow(() -> new RuntimeException("유저 없음"));
+        User seller = userRepository.findById(dto.getSellerId()).orElseThrow(() -> new UserNotFoundException());
         Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new RuntimeException("카테고리 없음"));
 
         Product product = mapper.toEntity(dto, seller, category);
@@ -47,10 +48,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductUpdateDto dto) {
-        //커스텀예외로 추후 수정
         Product product = productRepository.findById(dto.getId()).orElseThrow(() -> new IllegalStateException("제품 없음: " + dto.getId()));
         if (!product.getId().equals(dto.getId())) {
-            throw new IllegalStateException("수정하려는 제품의 ID와 일치하지 않음");
+            throw new ProductNotFoundException();
         }
 
         Category updateCategory = categoryRepository.findById(dto.getCategoryId()).orElse(product.getCategory());

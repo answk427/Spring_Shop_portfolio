@@ -9,6 +9,8 @@ import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.UserDto;
+import work.trade.user.exception.AuthProviderNotFoundException;
+import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.mapper.UserMapper;
 import work.trade.user.repository.AuthProviderRepository;
 import work.trade.user.repository.UserRepository;
@@ -36,9 +38,8 @@ public class UserServiceImpl implements UserService{
         String authProviderId = dto.getAuthProviderId();
         AuthProvider authProvider = null;
         if (authProviderId != null) {
-            //커스텀예외로 추후 수정
             authProvider = apRepository.findById(authProviderId)
-                    .orElseThrow(() -> new IllegalStateException("비정상적인 로그인방식"));
+                    .orElseThrow(() -> new AuthProviderNotFoundException());
         }
 
         User user = User.builder()
@@ -58,9 +59,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto updateUser(Long id, UserUpdateDto dto) {
-        //커스텀예외로 추후 수정
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException());
         user.updateFromDto(dto);
         user.updatePasswordHash(createPasswordHash(dto.getPassword()));
         return userMapper.toDto(user);
@@ -68,9 +68,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void deleteById(Long id) {
-        //커스텀예외로 추후 수정
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException());
         userRepository.delete(user);
     }
 }
