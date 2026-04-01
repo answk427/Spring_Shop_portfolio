@@ -2,7 +2,6 @@ package work.trade.product.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
-import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.product.service.ProductService;
 
 @RestController
@@ -31,14 +29,14 @@ public class productController {
 
     //상품 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getProduct(@PathVariable Long id) {
+    public ResponseEntity<ProductDto> getProduct(@PathVariable("id") Long id) {
         return ResponseEntity.ok(productService.findProduct(id));
     }
 
     //상품 수정
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestBody @Valid ProductUpdateDto dto,
             Authentication authentication) {
         Long sellerId = Long.parseLong(authentication.getName());
@@ -48,7 +46,7 @@ public class productController {
     //상품 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             Authentication authentication) {
         Long sellerId = Long.parseLong(authentication.getName());
         productService.deleteById(id, sellerId);

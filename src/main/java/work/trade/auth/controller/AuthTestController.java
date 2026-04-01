@@ -32,8 +32,8 @@ public class AuthTestController {
     //토큰이 반환되는지 확인
     @PostMapping("/auth/test/login")
     public LoginResponseDto login(@RequestBody @Valid LoginRequestDto requestDto) {
-        //실제로는 ID에 Email이 아닌 PK를 넣어야 함
-        return new LoginResponseDto(jwtTokenUtil.createToken(requestDto.getId(), List.of(Role.USER)));
+        //실제로는 로그인한 ID의 PK를 넣어야함
+        return new LoginResponseDto(jwtTokenUtil.createToken("1", List.of(Role.USER)));
     }
 
     //토큰을 실어서 보냈을 시 통과되는지 확인

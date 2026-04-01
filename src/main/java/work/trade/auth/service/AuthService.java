@@ -8,7 +8,6 @@ import work.trade.auth.dto.response.LoginResponseDto;
 import work.trade.auth.exception.InvalidPasswordException;
 import work.trade.user.exception.UserNotFoundException;
 import work.trade.auth.jwt.JwtTokenUtil;
-import work.trade.auth.role.Role;
 import work.trade.user.domain.User;
 import work.trade.user.repository.UserRepository;
 
