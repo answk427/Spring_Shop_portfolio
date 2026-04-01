@@ -9,9 +9,9 @@ import java.util.Optional;
 public interface ProductService {
 
     //CRUD
-    ProductDto createProduct(ProductCreateRequestDto dto);
-    Optional<ProductDto> findProduct(Long id);
-    ProductDto updateProduct(ProductUpdateDto dto);
-    void deleteById(Long id);
+    ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId);
+    ProductDto findProduct(Long id);
+    ProductDto updateProduct(ProductUpdateDto dto, Long sellerId);
+    void deleteById(Long id, Long sellerId);
 }
 

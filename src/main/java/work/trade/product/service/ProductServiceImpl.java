@@ -2,6 +2,7 @@ package work.trade.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.trade.product.domain.Category;
@@ -9,6 +10,8 @@ import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.request.ProductUpdateDto;
+import work.trade.product.exception.CategoryNotFoundException;
+import work.trade.product.exception.ProductNotEqualSeller;
 import work.trade.product.exception.ProductNotFoundException;
 import work.trade.product.mapper.ProductMapper;
 import work.trade.product.repository.CategoryRepository;
@@ -31,9 +34,10 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper mapper;
 
     @Override
-    public ProductDto createProduct(ProductCreateRequestDto dto) {
-        User seller = userRepository.findById(dto.getSellerId()).orElseThrow(() -> new UserNotFoundException());
-        Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new RuntimeException("카테고리 없음"));
+    public ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId) {
+        User seller = userRepository.findById(sellerId).orElseThrow(() -> new UserNotFoundException());
+
+        Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new CategoryNotFoundException());
 
         Product product = mapper.toEntity(dto, seller, category);
 
@@ -42,15 +46,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Optional<ProductDto> findProduct(Long id) {
-        return productRepository.findById(id).map(mapper::toDto);
+    public ProductDto findProduct(Long id) {
+        return productRepository.findById(id).
+                map(mapper::toDto)
+                .orElseThrow(() -> new ProductNotFoundException());
     }
 
     @Override
-    public ProductDto updateProduct(ProductUpdateDto dto) {
-        Product product = productRepository.findById(dto.getId()).orElseThrow(() -> new IllegalStateException("제품 없음: " + dto.getId()));
-        if (!product.getId().equals(dto.getId())) {
-            throw new ProductNotFoundException();
+    public ProductDto updateProduct(ProductUpdateDto dto, Long sellerId) {
+        Product product = productRepository.findById(dto.getId()).orElseThrow(() -> new ProductNotFoundException());
+
+        if (!product.getSeller().getId().equals(sellerId)) {
+            throw new ProductNotEqualSeller();
         }
 
         Category updateCategory = categoryRepository.findById(dto.getCategoryId()).orElse(product.getCategory());
@@ -60,7 +67,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id, Long sellerId) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
+
+        if (!product.getSeller().getId().equals(sellerId)) {
+            throw new ProductNotEqualSeller();
+        }
+
         productRepository.deleteById(id);
     }
 }
