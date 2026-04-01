@@ -12,9 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class ProductCreateRequestDto {
 
-    @NotNull(message = "판매자 ID는 필수입니다")
-    private Long sellerId;
-
     @NotNull(message = "카테고리 ID는 필수입니다")
     private Long categoryId;
 
