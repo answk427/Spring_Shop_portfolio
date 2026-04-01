@@ -1,6 +1,7 @@
 package work.trade.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.trade.user.domain.AuthProvider;
@@ -25,10 +26,11 @@ public class UserServiceImpl implements UserService{
     private final UserMapper userMapper;
     private final AuthProviderRepository apRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
 //Util----------------------------//
     private String createPasswordHash(String password) {
-        //todo : Hash 생성 후 반환
-        return password;
+        return passwordEncoder.encode(password);
     }
 //----------------------------//
 

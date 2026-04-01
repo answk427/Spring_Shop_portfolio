@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -48,6 +49,10 @@ class UserServiceImplTest {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+
+    //------------
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     //------------
     private static final String testUserName = "testUserName";
@@ -112,7 +117,7 @@ class UserServiceImplTest {
         assertThat(user.getId()).isEqualTo(createUserDto.getId());
         assertThat(user.getName()).isEqualTo(userName);
         assertThat(user.getEmail()).isEqualTo(userEmail);
-        assertThat(user.getPasswordHash()).isEqualTo(userPassword);
+        assertThat(passwordEncoder.matches(userPassword, user.getPasswordHash())).isTrue();
         assertThat(user.getCreatedAt()).isNotNull();
         assertThat(user.getUpdatedAt()).isNotNull();
 
