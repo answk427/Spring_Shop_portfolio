@@ -3,6 +3,7 @@ package work.trade.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.mapstruct.MappingTarget;
+import work.trade.auth.role.Role;
 import work.trade.user.dto.request.UserUpdateDto;
 
 import java.time.LocalDateTime;
@@ -14,11 +15,12 @@ import java.time.LocalDateTime;
 public class User {
 
     @Builder
-    public User(String email, String passwordHash, AuthProvider authProvider, String name) {
+    public User(String email, String passwordHash, AuthProvider authProvider, String name, Role role) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.authProvider = authProvider;
         this.name = name;
+        this.role = role;
     }
 
 
@@ -38,6 +40,10 @@ public class User {
 
     @Column(length = 100)
     private String name;
+
+    @Column(length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
 
     //레코드 생성/업데이트 시 자동갱신
     @Column(name = "created_at", insertable = false, updatable = false)
