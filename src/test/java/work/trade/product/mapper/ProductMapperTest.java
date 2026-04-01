@@ -62,7 +62,6 @@ class ProductMapperTest {
         dto.setPrice(BigDecimal.valueOf(10000));
         dto.setStock(1232);
         dto.setDescription("새상품 설명");
-        dto.setSellerId(123L);
         dto.setCategoryId(3131L);
 
         //when
