@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import work.trade.auth.role.Role;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserCreateRequestDto;
@@ -48,6 +49,7 @@ public class UserServiceImpl implements UserService{
                 .email(dto.getEmail())
                 .passwordHash(createPasswordHash(dto.getPassword()))
                 .authProvider(authProvider)
+                .role(Role.USER)
                 .build();
 
         return userMapper.toDto(userRepository.save(user));
