@@ -60,10 +60,10 @@ public class Product {
 
     public void updateFromDto(ProductUpdateDto dto, Category category) {
         //카테고리는 서비스에서 검증
-        this.name = dto.getName();
-        this.price = dto.getPrice();
-        this.stock = dto.getStock();
-        this.description = dto.getDescription();
-        this.category = category;
+        if (dto.getName() != null)  this.name = dto.getName();
+        if (dto.getPrice() != null)  this.price = dto.getPrice();
+        if (dto.getStock() != null)  this.stock = dto.getStock();
+        if (dto.getDescription() != null)  this.description = dto.getDescription();
+        if (category != null)  this.category = category;
     }
 }

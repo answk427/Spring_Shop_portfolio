@@ -249,7 +249,6 @@ class ProductServiceImplTest {
         final String updateDesc = "Update Description";
 
         ProductUpdateDto updateDto = new ProductUpdateDto();
-        updateDto.setId(product.getId());
         updateDto.setCategoryId(testCategoryId2);
         updateDto.setName(updateName);
         updateDto.setPrice(updatePrice);
@@ -257,7 +256,7 @@ class ProductServiceImplTest {
         updateDto.setDescription(updateDesc);
 
         //when
-        ProductDto updatedDto = productService.updateProduct(updateDto, testUserId);
+        ProductDto updatedDto = productService.updateProduct(updateDto, product.getId(), testUserId);
         em.flush();
         em.clear();
 
@@ -284,8 +283,7 @@ class ProductServiceImplTest {
         assertThat(productByRepo.getDescription()).isEqualTo(updateDesc);
 
         //잘못된 id를 update할 경우
-        updateDto.setId(1123123L);
-        assertThatThrownBy(()->productService.updateProduct(updateDto,testUserId));
+        assertThatThrownBy(()->productService.updateProduct(updateDto, 1123123L, testUserId));
     }
 
     @Test

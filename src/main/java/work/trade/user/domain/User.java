@@ -2,7 +2,6 @@ package work.trade.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.mapstruct.MappingTarget;
 import work.trade.auth.role.Role;
 import work.trade.user.dto.request.UserUpdateDto;
 

@@ -89,7 +89,6 @@ class ProductMapperTest {
 
         ProductUpdateDto dto = new ProductUpdateDto();
 
-        dto.setId(11L);
         dto.setCategoryId(1311L);
         dto.setName("테스트 dto");
         dto.setDescription("업데이트 설명");

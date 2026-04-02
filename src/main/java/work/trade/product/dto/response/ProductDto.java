@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class ProductDto {
-    private long id;
+    private Long id;
 
     private SellerDto seller;
     private CategoryDto category;

@@ -12,9 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class ProductUpdateDto {
 
-    @NotNull(message = "ID는 필수입니다.")
-    private Long id;
-
     private Long categoryId;
 
     @Size(max = 100, message = "이름은 100자를 초과할 수 없습니다")
