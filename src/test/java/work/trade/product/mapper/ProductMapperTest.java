@@ -147,8 +147,7 @@ class ProductMapperTest {
         assertThat(dto.getStock()).isEqualTo(product.getStock());
         assertThat(dto.getCreatedAt()).isEqualTo(product.getCreatedAt());
 
-        //service에서 처리
-        assertThat(dto.getCategoryName()).isNull();
-        assertThat(dto.getSellerName()).isNull();
+        assertThat(dto.getCategoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(dto.getSellerName()).isEqualTo(product.getSeller().getName());
     }
 }

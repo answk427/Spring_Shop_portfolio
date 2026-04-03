@@ -28,5 +28,8 @@ public interface ProductMapper {
 //Entity -> Response
 //-------------------------------------//
     ProductDto toDto(Product product);
+
+    @Mapping(target = "categoryName", source = "category.name")
+    @Mapping(target = "sellerName", source = "seller.name")
     ProductSummaryDto toSummaryDto(Product product);
 }
