@@ -3,6 +3,7 @@ package work.trade.auth.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.LoginResponseDto;
 import work.trade.auth.exception.InvalidPasswordException;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
     private final JwtTokenUtil jwtTokenUtil;
