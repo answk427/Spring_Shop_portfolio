@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
-import work.trade.product.dto.response.CategoryDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductSummaryDto;
