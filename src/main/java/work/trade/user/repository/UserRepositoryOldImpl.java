@@ -3,16 +3,16 @@ package work.trade.user.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import work.trade.user.domain.User;
 import work.trade.user.mapper.UserMapper;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+//@Repository
 @RequiredArgsConstructor
-public class UserRepositoryImpl implements UserRepository{
+public class UserRepositoryOldImpl implements UserRepositoryOld {
 
     @PersistenceContext
     private EntityManager em;
@@ -44,5 +44,11 @@ public class UserRepositoryImpl implements UserRepository{
     @Override
     public void delete(User user) {
         em.remove(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAll() {
+        em.createQuery("DELETE FROM User").executeUpdate();
     }
 }
