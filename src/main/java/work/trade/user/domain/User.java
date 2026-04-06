@@ -2,6 +2,8 @@ package work.trade.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.generator.EventType;
+import org.springframework.util.StringUtils;
 import work.trade.auth.role.Role;
 import work.trade.user.dto.request.UserUpdateDto;
 
@@ -46,15 +48,18 @@ public class User {
 
     //레코드 생성/업데이트 시 자동갱신
     @Column(name = "created_at", insertable = false, updatable = false)
+    @org.hibernate.annotations.Generated(event = EventType.INSERT)
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at", insertable = false, updatable = false)
+    @org.hibernate.annotations.Generated(event = {EventType.INSERT, EventType.UPDATE})
     private LocalDateTime updatedAt;
 
 
     public void updateFromDto(UserUpdateDto dto) {
         //password는 서비스에서 Hash로 변환 후 변경
-         if (dto.getName() != null) name = dto.getName();
-        if (dto.getEmail() != null) email = dto.getEmail();
+        if (StringUtils.hasText(dto.getName())) name = dto.getName();
+        if (StringUtils.hasText(dto.getEmail())) email = dto.getEmail();
     }
 
     public void updatePasswordHash(String passwordHash) {

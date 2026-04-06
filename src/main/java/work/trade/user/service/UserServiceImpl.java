@@ -12,6 +12,7 @@ import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.UserDto;
 import work.trade.user.exception.AuthProviderNotFoundException;
+import work.trade.user.exception.UserDuplicateEmailException;
 import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.mapper.UserMapper;
 import work.trade.user.repository.AuthProviderRepository;
@@ -36,6 +37,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserCreateRequestDto dto) {
+        //중복 체크
+        userRepository.findByEmail(dto.getEmail()).ifPresent(user -> {
+            throw new UserDuplicateEmailException();
+        });
+
         String authProviderId = dto.getAuthProviderId();
         AuthProvider authProvider = null;
         if (authProviderId != null) {

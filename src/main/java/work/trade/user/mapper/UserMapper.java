@@ -25,4 +25,7 @@ public interface UserMapper {
     UserSummaryDto toSummaryDto(User user);
     SellerDto toSellerDto(User user);
 
+//DTO -> DTO
+//-------------------------------------//
+    UserSummaryDto toSummaryDto(UserDto userDto);
 }

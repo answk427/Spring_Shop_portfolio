@@ -39,3 +39,4 @@ out/
 /src/main/generated/work/trade/product/mapper/ProductMapperImpl.java
 /src/main/generated/work/trade/user/mapper/AuthProviderMapperImpl.java
 /src/main/generated/work/trade/user/mapper/UserMapperImpl.java
+/src/main/generated/work/trade/cart/mapper/CartMapperImpl.java

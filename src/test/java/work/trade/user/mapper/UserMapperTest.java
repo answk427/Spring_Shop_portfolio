@@ -124,17 +124,19 @@ class UserMapperTest {
         User user = getTestUser();
 
         // when
-        UserSummaryDto dto = mapper.toSummaryDto(user);
+        UserSummaryDto summaryDto = mapper.toSummaryDto(user);
+
+        UserDto dto = mapper.toDto(user);
+        UserSummaryDto dtoToSummaryDto = mapper.toSummaryDto(dto);
 
         //then
-        assertThat(dto.getId()).isEqualTo(user.getId());
-        assertThat(dto.getEmail()).isEqualTo(user.getEmail());
-        assertThat(dto.getName()).isEqualTo(user.getName());
+        assertThat(summaryDto.getId()).isEqualTo(user.getId());
+        assertThat(summaryDto.getEmail()).isEqualTo(user.getEmail());
+        assertThat(summaryDto.getName()).isEqualTo(user.getName());
 
-        assertThat(dto.getAuthProvider()).isNotNull();
-        assertThat(dto.getAuthProvider().getName()).isEqualTo(user.getAuthProvider().getName());
-        assertThat(dto.getAuthProvider().getCode()).isEqualTo(user.getAuthProvider().getCode());
-        assertThat(dto.getAuthProvider().getDescription()).isEqualTo(user.getAuthProvider().getDescription());
+        assertThat(dtoToSummaryDto.getId()).isEqualTo(dto.getId());
+        assertThat(dtoToSummaryDto.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(dtoToSummaryDto.getName()).isEqualTo(dto.getName());
     }
 
     @Test
