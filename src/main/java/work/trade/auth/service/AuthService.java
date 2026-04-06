@@ -33,8 +33,6 @@ public class AuthService {
             throw new InvalidPasswordException();
         }
 
-        //추후 수정
-        //User에 권한 컬럼 추가하고 가져오기
         String token = jwtTokenUtil.createToken(user.getId().toString(), List.of(user.getRole()));
         return new LoginResponseDto(token);
     }
