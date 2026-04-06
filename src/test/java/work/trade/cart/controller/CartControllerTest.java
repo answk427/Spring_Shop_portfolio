@@ -45,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+@Transactional
 class CartControllerTest {
 
     @Container
@@ -89,13 +90,6 @@ class CartControllerTest {
 
     @BeforeEach
     void Init() {
-        //MockMvc는 다른 스레드에서 실행되기 때문에 @Transactional로 롤백이 안됨.
-        //따라서 수동으로 이전 테스트 데이터 정리필요
-        cartRepository.deleteAllInBatch();
-        productRepository.deleteAllInBatch();
-        categoryRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
-
         UserCreateRequestDto userCreateDto = new UserCreateRequestDto();
         userCreateDto.setName("testUser");
         userCreateDto.setPassword("12341414");
