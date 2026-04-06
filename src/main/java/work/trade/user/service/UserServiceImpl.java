@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import work.trade.auth.role.Role;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
@@ -16,12 +17,10 @@ import work.trade.user.mapper.UserMapper;
 import work.trade.user.repository.AuthProviderRepository;
 import work.trade.user.repository.UserRepository;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -29,7 +28,7 @@ public class UserServiceImpl implements UserService{
 
     private final PasswordEncoder passwordEncoder;
 
-//Util----------------------------//
+    //Util----------------------------//
     private String createPasswordHash(String password) {
         return passwordEncoder.encode(password);
     }
@@ -56,8 +55,19 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Optional<UserDto> findUser(Long id) {
-        return userRepository.findById(id).map(userMapper::toDto);
+    @Transactional(readOnly = true)
+    public UserDto findUser(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new UserNotFoundException());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDto findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new UserNotFoundException());
     }
 
     @Override
@@ -65,7 +75,9 @@ public class UserServiceImpl implements UserService{
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException());
         user.updateFromDto(dto);
-        user.updatePasswordHash(createPasswordHash(dto.getPassword()));
+        if (StringUtils.hasText(dto.getPassword())) {
+            user.updatePasswordHash(createPasswordHash(dto.getPassword()));
+        }
         return userMapper.toDto(user);
     }
 

@@ -53,8 +53,8 @@ public class User {
 
     public void updateFromDto(UserUpdateDto dto) {
         //password는 서비스에서 Hash로 변환 후 변경
-        name = dto.getName();
-        email = dto.getEmail();
+         if (dto.getName() != null) name = dto.getName();
+        if (dto.getEmail() != null) email = dto.getEmail();
     }
 
     public void updatePasswordHash(String passwordHash) {

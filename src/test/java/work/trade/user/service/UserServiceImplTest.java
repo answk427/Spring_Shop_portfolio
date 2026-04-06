@@ -17,6 +17,7 @@ import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.AuthProviderDto;
 import work.trade.user.dto.response.UserDto;
+import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.repository.AuthProviderRepository;
 import work.trade.user.repository.UserRepository;
 
@@ -134,11 +135,10 @@ class UserServiceImplTest {
         //@BeforeEach에서 데이터 삽입
 
         //when
-        Optional<UserDto> userOpt = userService.findUser(testUserId);
+        UserDto userDto = userService.findUser(testUserId);
 
         //then
-        assertThat(userOpt.isPresent()).isTrue();
-        UserDto userDto = userOpt.get();
+        assertThat(userDto).isNotNull();
         assertThat(userDto.getId()).isEqualTo(testUserId);
         assertThat(userDto.getName()).isEqualTo(testUserName);
         assertThat(userDto.getEmail()).isEqualTo(testUserEmail);
@@ -199,6 +199,6 @@ class UserServiceImplTest {
         userService.deleteById(testUserId);
 
         //then
-        assertThat(userService.findUser(testUserId).isPresent()).isFalse();
+        assertThatThrownBy(() -> userService.findUser(testUserId)).isInstanceOf(UserNotFoundException.class);
     }
 }
