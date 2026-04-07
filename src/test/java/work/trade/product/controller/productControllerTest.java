@@ -1,10 +1,8 @@
 package work.trade.product.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,11 +13,9 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.role.Role;
 import work.trade.product.domain.Category;
@@ -27,7 +23,6 @@ import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.repository.CategoryRepository;
-import work.trade.product.repository.ProductRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.response.UserDto;
@@ -36,7 +31,6 @@ import work.trade.user.service.UserService;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -88,7 +82,7 @@ class productControllerTest {
         UserDto testSeller = userService.createUser(dto);
         testUserId = testSeller.getId();
         //테스트용 토큰 생성
-        testUserToken = jwtTokenUtil.createToken(testUserId.toString(), List.of(Role.USER));
+        testUserToken = jwtTokenUtil.createAccessToken(testUserId.toString(), List.of(Role.USER));
 
         // 테스트용 카테고리 생성
         Category testCategory = Category.builder()
@@ -293,7 +287,7 @@ class productControllerTest {
         otherUserDto.setPassword("password123");
         otherUserDto.setName("다른유저");
         UserDto otherUser = userService.createUser(otherUserDto);
-        String otherUserToken = jwtTokenUtil.createToken(otherUser.getId().toString(), List.of(Role.USER));
+        String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.getId().toString(), List.of(Role.USER));
         productService.createProduct(getProductCreateRequestDto("다른유저 상품", new BigDecimal("3000")), otherUser.getId());
 
         // when, then

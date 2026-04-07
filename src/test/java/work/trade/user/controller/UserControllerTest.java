@@ -71,7 +71,7 @@ class UserControllerTest {
         testUserId = userDto.getId();
 
         //테스트용 토큰 생성
-        testUserToken = jwtTokenUtil.createToken(userDto.getId().toString(), List.of(Role.USER));
+        testUserToken = jwtTokenUtil.createAccessToken(userDto.getId().toString(), List.of(Role.USER));
     }
 
 //*********************//

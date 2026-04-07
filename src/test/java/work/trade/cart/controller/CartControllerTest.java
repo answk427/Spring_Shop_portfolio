@@ -117,7 +117,7 @@ class CartControllerTest {
         productId2 = product2.getId();
 
         //테스트용 토큰 생성
-        testUserToken = jwtTokenUtil.createToken(userId.toString(), List.of(Role.USER));
+        testUserToken = jwtTokenUtil.createAccessToken(userId.toString(), List.of(Role.USER));
     }
 
 //******************************//
