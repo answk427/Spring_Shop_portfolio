@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<String> handle(Exception e) {
-//        return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
-//    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handle(Exception e) {
+        return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
+    }
 
     //BusinessException
     @ExceptionHandler(BusinessException.class)
