@@ -20,7 +20,7 @@ import work.trade.product.service.ProductService;
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
-public class productController {
+public class ProductController {
     private final ProductService productService;
 
     //상품 등록
