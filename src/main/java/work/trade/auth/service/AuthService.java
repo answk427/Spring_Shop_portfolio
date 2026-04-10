@@ -7,12 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.LoginResponseDto;
-import work.trade.auth.exception.InvalidPasswordException;
-import work.trade.auth.exception.InvalidRefreshTokenException;
-import work.trade.user.exception.UserNotFoundException;
+import work.trade.auth.exception.RefreshTokenInvalidException;
+import work.trade.user.dto.response.UserDto;
 import work.trade.auth.jwt.JwtTokenUtil;
-import work.trade.user.domain.User;
-import work.trade.user.repository.UserRepository;
+import work.trade.user.service.UserService;
 
 import java.util.List;
 
@@ -24,29 +22,15 @@ import java.util.List;
 public class AuthService {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public LoginResponseDto login(LoginRequestDto requestDto) {
         //로그인 요청시 ID = email
-        User user = userRepository.findByEmail(requestDto.getId())
-                .orElseThrow(() -> {
-                    log.warn("User not found - email: {}", requestDto.getId());
-                    return new UserNotFoundException();
-                });
+        UserDto user = userService.authenticate(requestDto.getId(), requestDto.getPassword());
 
-
-        //비밀번호 검증
-        if (!passwordEncoder.matches(requestDto.getPassword(), user.getPasswordHash())) {
-            log.warn("Invalid password - email: {}", requestDto.getId());
-            throw new InvalidPasswordException();
-        }
-
-        //AccessToken 생성
         String accessToken = jwtTokenUtil.createAccessToken(user.getId().toString(), List.of(user.getRole()));
-
-        //RefreshToken 생성
         String refreshToken = jwtTokenUtil.createRefreshToken(user.getId().toString());
 
         //RefreshToken Redis에 저장
@@ -69,18 +53,11 @@ public class AuthService {
         //검증
         if (!jwtTokenUtil.isValidRefreshToken(oldRefreshToken)) {
             log.warn("Invalid refresh token");
-            throw new InvalidRefreshTokenException("유효하지 않은 RefreshToken입니다");
+            throw new RefreshTokenInvalidException("유효하지 않은 RefreshToken입니다");
         }
 
-        //RefreshToken에서 사용자 ID 추출
         String userId = jwtTokenUtil.getUserIdFromRefreshToken(oldRefreshToken);
-
-        //사용자 조회 (권한 정보 필요)
-        User user = userRepository.findById(Long.parseLong(userId))
-                .orElseThrow(() -> {
-                    log.warn("User not found - userId: {}", userId);
-                    return new UserNotFoundException();
-                });
+        UserDto user = userService.findUser(Long.parseLong(userId));
 
         //새로운 AccessToken 생성
         String newAccessToken = jwtTokenUtil.createAccessToken(
@@ -104,11 +81,16 @@ public class AuthService {
     }
 
     //로그아웃(RefreshToken Redis에서 삭제)
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
         log.info("Logout");
 
         jwtTokenUtil.invalidateRefreshToken(refreshToken);
+        jwtTokenUtil.blacklistAccessToken(accessToken);
 
         log.info("Logout successful");
+    }
+
+    public void logout(String refreshToken) {
+        logout(refreshToken, null);
     }
 }

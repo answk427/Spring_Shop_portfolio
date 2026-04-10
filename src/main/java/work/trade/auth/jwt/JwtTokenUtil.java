@@ -4,10 +4,10 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.Token;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import work.trade.auth.role.Role;
@@ -20,6 +20,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtTokenUtil {
 
     public enum TokenType {
@@ -37,13 +38,14 @@ public class JwtTokenUtil {
 
     private SecretKey signingKey;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
 //****************************************//
 
     private final String refreshKeyPrefix = "refreshToken:";
+    private static final String BLACKLIST_KEY_PREFIX = "blacklist:";
+
 
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
@@ -70,9 +72,14 @@ public class JwtTokenUtil {
 
     //토큰 생성
     private String createToken(String userId, List<Role> roles, TokenType type, long expiration) {
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("User ID cannot be null or blank");
+        }
+
+
         Claims claims = Jwts.claims().setSubject(userId);
         claims.put("type", type.name()); // Enum의 이름을 문자열로 저장
-        if (roles != null) {
+        if (roles != null && !roles.isEmpty()) {
             claims.put("roles", roles.stream().map(Role::name).toList());
         }
 
@@ -85,6 +92,9 @@ public class JwtTokenUtil {
     }
 
     public String createAccessToken(String userId, List<Role> roles) {
+        if (roles == null || roles.isEmpty()) {
+            throw new IllegalArgumentException("Roles cannot be null or empty");
+        }
         return createToken(userId, roles, TokenType.ACCESS, accessTokenExpiration);
     }
 
@@ -114,15 +124,46 @@ public class JwtTokenUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.info("ExpiredJwtException : {}", e.getMessage());
+            log.warn("Token expired: {}", e.getMessage());
+            return false;
+        } catch (UnsupportedJwtException e) {
+            log.warn("Unsupported JWT token: {}", e.getMessage());
+            return false;
+        } catch (MalformedJwtException e) {
+            log.warn("Malformed JWT token: {}", e.getMessage());
             return false;
         } catch (SignatureException e) {
-            log.info("SignatureException : {}", e.getMessage());
+            log.warn("Invalid JWT signature: {}", e.getMessage());
             return false;
         } catch (JwtException e) {
-            log.info("JwtException : {}", e.getMessage());
+            log.warn("JWT error: {}", e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            log.warn("JWT claims string is empty: {}", e.getMessage());
             return false;
         }
+    }
+
+    public boolean isValidAccessToken(String accessToken) {
+        //JWT 검증
+        if (!validateToken(accessToken)) {
+            return false;
+        }
+
+        //토큰 타입 검증
+        if (!getTypeFromToken(accessToken).equals(TokenType.ACCESS.name())) {
+            log.warn("Token is not ACCESS Token");
+            return false;
+        }
+
+        //블랙리스트 확인
+        String userId = getUserIdFromToken(accessToken);
+        if (isAccessTokenBlacklisted(accessToken, userId)) {
+            log.warn("AccessToken is blacklisted");
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -136,13 +177,61 @@ public class JwtTokenUtil {
         String key = refreshKeyPrefix + refreshToken;
 
         //Redis에 저장
-        redisTemplate.opsForValue().set(
-                key,
-                userId,
-                Duration.ofMillis(refreshTokenExpiration)
-        );
+        try {
+            redisTemplate.opsForValue().set(
+                    key,
+                    userId,
+                    Duration.ofMillis(refreshTokenExpiration));
+        } catch (Exception e) {
+            log.error("Failed to save RefreshToken to Redis", e);
+            throw new RuntimeException("Redis operation failed", e);
+        }
 
         log.info("RefreshToken saved to Redis - userId: {}", userId);
+    }
+
+    public void blacklistAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+
+        String key = BLACKLIST_KEY_PREFIX + accessToken;
+        try {
+            long remainingTime = extractExpirationTime(accessToken) - System.currentTimeMillis();
+
+            if (remainingTime > 0) {
+                redisTemplate.opsForValue().set(
+                        key,
+                        "blacklisted",
+                        Duration.ofMillis(remainingTime)
+                );
+                log.debug("AccessToken blacklisted");
+            }
+        } catch (DataAccessException e) {
+            log.error("Failed to blacklist AccessToken", e);
+            throw e;
+        }
+    }
+
+    //AccessToken 블랙리스트 확인
+    public boolean isAccessTokenBlacklisted(String accessToken, String userId) {
+        try {
+            String key = BLACKLIST_KEY_PREFIX + accessToken;
+            return redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.warn("Failed to check blacklist - userId: {} - {}", userId, e.getMessage());
+            return false;
+        }
+    }
+
+    //토큰 만료시간 추출
+    private long extractExpirationTime(String token) {
+        try {
+            return parseClaims(token).getExpiration().getTime();
+        } catch (Exception e) {
+            log.warn("Failed to extract expiration time");
+            return System.currentTimeMillis();
+        }
     }
 
     public boolean isValidRefreshToken(String refreshToken) {
@@ -152,17 +241,23 @@ public class JwtTokenUtil {
             return false;
         }
 
-        //TokenType이 RefreshToken인지 확인
+        //TokenType 검증
         if (!getTypeFromToken(refreshToken).equals(TokenType.REFRESH.name())) {
-            log.warn("RefreshToken JWT is not REFRESH Token");
+            log.warn("Token is not REFRESH Token");
             return false;
         }
 
         // Redis에 존재하는지 확인
         String key = refreshKeyPrefix + refreshToken;
-        Boolean exists = redisTemplate.hasKey(key);
+        Boolean exists;
+        try {
+            exists = redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.warn("RedisTemplate.hasKey() failed : {}", e.getMessage());
+            return false;
+        }
 
-        if (exists == null || !exists) {
+        if (!exists) {
             log.warn("RefreshToken not found in Redis");
             return false;
         }
@@ -172,8 +267,18 @@ public class JwtTokenUtil {
 
     //Redis에서 RefreshToken 삭제
     public void invalidateRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
+
         String key = refreshKeyPrefix + refreshToken;
-        redisTemplate.delete(key);
+        try {
+            redisTemplate.delete(key);
+        } catch (DataAccessException e) {
+            log.error("Failed Delete RefreshToken from Redis", e);
+            throw e;
+        }
+
         log.info("RefreshToken invalidated in Redis");
     }
 

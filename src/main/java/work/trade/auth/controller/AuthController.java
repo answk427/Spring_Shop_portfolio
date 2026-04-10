@@ -55,7 +55,6 @@ public class AuthController {
 
         String refreshToken = extractRefreshTokenFromCookie(request);
 
-        //AuthService에서 Redis에서 검증하고 갱신
         LoginResponseDto response = authService.refreshAccessToken(refreshToken);
 
         // 새로운 RefreshToken을 쿠키에 설정
@@ -90,7 +89,7 @@ public class AuthController {
                 .from("refreshToken", "")
                 .httpOnly(true)
                 .path("/")
-                .maxAge(0)  // ✅ 즉시 삭제
+                .maxAge(0)
                 .sameSite("Strict")
                 .build();
 
@@ -102,6 +101,7 @@ public class AuthController {
 
 
 //*************************************//
+
     //쿠키에서 RefreshToken 추출
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -117,4 +117,3 @@ public class AuthController {
         throw new RuntimeException("RefreshToken 쿠키를 찾을 수 없습니다");
     }
 }
- 

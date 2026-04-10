@@ -28,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractTokenFromRequest(request);
 
         // 유효한 토큰이 존재하는 경우
-        if (token != null && jwtTokenUtil.validateToken(token)) {
+         if (token != null && jwtTokenUtil.isValidAccessToken(token)) {
             // 토큰에서 사용자 ID 추출
             String userId = jwtTokenUtil.getUserIdFromToken(token);
 

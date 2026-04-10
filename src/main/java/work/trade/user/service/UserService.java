@@ -18,4 +18,6 @@ public interface UserService {
     UserDto findByEmail(String email);
     UserDto updateUser(Long id, UserUpdateDto dto);
     void deleteById(Long id);
+    //추가
+    UserDto authenticate(String email, String password);
 }

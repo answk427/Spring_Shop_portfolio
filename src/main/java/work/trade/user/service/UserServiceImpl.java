@@ -1,10 +1,12 @@
 package work.trade.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import work.trade.auth.exception.PasswordInvalidException;
 import work.trade.auth.role.Role;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
@@ -18,6 +20,7 @@ import work.trade.user.mapper.UserMapper;
 import work.trade.user.repository.AuthProviderRepository;
 import work.trade.user.repository.UserRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -33,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private String createPasswordHash(String password) {
         return passwordEncoder.encode(password);
     }
+
 //----------------------------//
 
     @Override
@@ -93,4 +97,18 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException());
         userRepository.delete(user);
     }
+
+    @Override
+    public UserDto authenticate(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException());
+
+        //비밀번호 검증
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new PasswordInvalidException();
+        }
+        return userMapper.toDto(user);
+    }
+
+
 }
