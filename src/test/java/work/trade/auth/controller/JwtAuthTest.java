@@ -9,16 +9,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.LoginResponseDto;
 import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.service.AuthService;
 import work.trade.user.dto.request.UserCreateRequestDto;
+import work.trade.user.dto.response.UserDto;
 import work.trade.user.service.UserService;
 
 import static org.mockito.BDDMockito.given;
@@ -29,7 +34,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Testcontainers
 class JwtAuthTest {
+
+    @Container
+    @ServiceConnection
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("testpw");
 
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
@@ -166,13 +179,10 @@ class JwtAuthTest {
     @DisplayName("RefreshToken 발급 확인")
     void getRefreshToken() throws Exception {
         //given
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
-        createRequestDto.setName("tester2");
-        createRequestDto.setEmail("test2@test.com");
-        createRequestDto.setPassword("zxcv1234");
-        userService.createUser(createRequestDto);
+        UserCreateRequestDto createRequestDto = getUserCreateDto();
+        UserDto userDto = userService.createUser(createRequestDto);
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("test@test.com", "zxcv1234");
+        LoginRequestDto loginRequestDto = new LoginRequestDto(createRequestDto.getEmail(), createRequestDto.getPassword());
 
         //when, then
         mockMvc.perform(post("/auth/login")
@@ -195,12 +205,9 @@ class JwtAuthTest {
         //임시로 token 유효기간을 0으로 설정
         ReflectionTestUtils.setField(jwtTokenUtil, "accessTokenExpiration", 0);
 
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
-        createRequestDto.setName("tester2");
-        createRequestDto.setEmail("test2@test.com");
-        createRequestDto.setPassword("zxcv1234");
+        UserCreateRequestDto createRequestDto = getUserCreateDto();
         userService.createUser(createRequestDto);
-        LoginRequestDto loginRequestDto = new LoginRequestDto("test@test.com", "zxcv1234");
+        LoginRequestDto loginRequestDto = new LoginRequestDto(createRequestDto.getEmail(), createRequestDto.getPassword());
 
         LoginResponseDto login = authService.login(loginRequestDto);
         String accessToken = login.accessToken();

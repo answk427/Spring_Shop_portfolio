@@ -14,7 +14,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.auth.dto.request.LoginRequestDto;
-import work.trade.auth.exception.InvalidPasswordException;
+import work.trade.auth.exception.PasswordInvalidException;
 import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.role.Role;
 import work.trade.auth.service.AuthService;
@@ -165,7 +165,7 @@ class UserControllerTest {
         //변경 전 패스워드로 로그인
         assertThatThrownBy(() -> authService
                 .login(new LoginRequestDto(updateDto.getEmail(), testUserPassword)))
-                .isInstanceOf(InvalidPasswordException.class);
+                .isInstanceOf(PasswordInvalidException.class);
 
         //변경 후 패스워드로 로그인
         assertThatCode(() -> authService
