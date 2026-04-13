@@ -1,0 +1,15 @@
+package work.trade.auth.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum AuthErrorCode {
+    UNAUTHORIZED("AUTH_001", "인증되지 않았습니다."),
+    EXPIRED_TOKEN("AUTH_002", "토큰이 만료되었습니다."),
+    INVALID_TOKEN("AUTH_003", "유효하지 않은 토큰입니다.");
+
+    private final String code;
+    private final String message;
+}

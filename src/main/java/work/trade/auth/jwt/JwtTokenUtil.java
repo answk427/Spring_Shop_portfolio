@@ -116,7 +116,7 @@ public class JwtTokenUtil {
     }
 
     //토큰 유효성 검증
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token) throws JwtException {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(signingKey)
@@ -125,42 +125,43 @@ public class JwtTokenUtil {
             return true;
         } catch (ExpiredJwtException e) {
             log.warn("Token expired: {}", e.getMessage());
-            return false;
+            throw e;
         } catch (UnsupportedJwtException e) {
             log.warn("Unsupported JWT token: {}", e.getMessage());
-            return false;
+            throw e;
         } catch (MalformedJwtException e) {
             log.warn("Malformed JWT token: {}", e.getMessage());
-            return false;
+            throw e;
         } catch (SignatureException e) {
             log.warn("Invalid JWT signature: {}", e.getMessage());
-            return false;
+            throw e;
         } catch (JwtException e) {
             log.warn("JWT error: {}", e.getMessage());
-            return false;
+            throw e;
         } catch (IllegalArgumentException e) {
             log.warn("JWT claims string is empty: {}", e.getMessage());
-            return false;
+            throw new JwtException("유효하지 않은 토큰입니다.");
+        } catch (Exception e) {
+            log.warn("Invalid token: {}", e.getMessage());
+            throw new JwtException("유효하지 않은 토큰입니다.");
         }
     }
 
-    public boolean isValidAccessToken(String accessToken) {
+    public boolean isValidAccessToken(String accessToken) throws JwtException {
         //JWT 검증
-        if (!validateToken(accessToken)) {
-            return false;
-        }
+        validateToken(accessToken);
 
         //토큰 타입 검증
         if (!getTypeFromToken(accessToken).equals(TokenType.ACCESS.name())) {
             log.warn("Token is not ACCESS Token");
-            return false;
+            throw new JwtException("WRONG_TYPE_TOKEN");
         }
 
         //블랙리스트 확인
         String userId = getUserIdFromToken(accessToken);
         if (isAccessTokenBlacklisted(accessToken, userId)) {
             log.warn("AccessToken is blacklisted");
-            return false;
+            throw new JwtException("BLACKLISTED_TOKEN");
         }
 
         return true;
@@ -234,17 +235,14 @@ public class JwtTokenUtil {
         }
     }
 
-    public boolean isValidRefreshToken(String refreshToken) {
+    public boolean isValidRefreshToken(String refreshToken) throws JwtException {
         // JWT 토큰 검증
-        if (!validateToken(refreshToken)) {
-            log.warn("RefreshToken JWT validation failed");
-            return false;
-        }
+        validateToken(refreshToken);
 
         //TokenType 검증
         if (!getTypeFromToken(refreshToken).equals(TokenType.REFRESH.name())) {
             log.warn("Token is not REFRESH Token");
-            return false;
+            throw new JwtException("WRONG_TYPE_TOKEN");
         }
 
         // Redis에 존재하는지 확인

@@ -20,6 +20,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.LoginResponseDto;
+import work.trade.auth.exception.AuthErrorCode;
 import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.service.AuthService;
 import work.trade.user.dto.request.UserCreateRequestDto;
@@ -217,7 +218,9 @@ class JwtAuthTest {
         //만료된 AccessToken으로 요청시 401반환
         mockMvc.perform(get("/requestWithToken")
                         .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.EXPIRED_TOKEN.getCode()))
+                .andExpect(jsonPath("$.message").value(AuthErrorCode.EXPIRED_TOKEN.getMessage()));
 
         //token 유효기간 재설정
         ReflectionTestUtils.setField(jwtTokenUtil, "accessTokenExpiration", 36000);
