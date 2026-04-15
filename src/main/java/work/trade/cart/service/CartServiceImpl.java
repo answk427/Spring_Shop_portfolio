@@ -7,6 +7,7 @@ import work.trade.cart.domain.Cart;
 import work.trade.cart.dto.request.CartAddRequestDto;
 import work.trade.cart.dto.request.CartUpdateRequestDto;
 import work.trade.cart.dto.response.CartDto;
+import work.trade.cart.dto.response.CartItemDto;
 import work.trade.cart.exception.CartNotFoundException;
 import work.trade.cart.mapper.CartMapper;
 import work.trade.cart.repository.CartRepository;
@@ -60,6 +61,13 @@ public class CartServiceImpl implements CartService{
         return cartRepository.findByUser_Id(userId)
                 .stream()
                 .map(mapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<CartItemDto> getCartItemIdsForOrder(Long userId) {
+        return cartRepository.findByUser_Id(userId).stream()
+                .map(cart -> new CartItemDto(cart.getProduct().getId(), cart.getQuantity()))
                 .toList();
     }
 
