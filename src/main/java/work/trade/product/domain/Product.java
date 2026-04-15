@@ -2,7 +2,7 @@ package work.trade.product.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.mapstruct.MappingTarget;
+import work.trade.order.exception.InsufficientStockException;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.user.domain.User;
 
@@ -66,4 +66,37 @@ public class Product {
         if (dto.getDescription() != null)  this.description = dto.getDescription();
         if (category != null)  this.category = category;
     }
+
+    public void decreaseStock(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("수량은 1이상이어야 합니다.");
+        }
+
+        if (this.stock < quantity) {
+            throw new InsufficientStockException(this.name,
+                    quantity,
+                    this.stock);
+        }
+
+        this.stock -= quantity;
+    }
+
+    /**
+     * 재고 증가
+     * 주문 취소 시 호출
+     */
+    public void increaseStock(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+        }
+        this.stock += quantity;
+    }
+
+    public boolean hasEnoughStock(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            return false;
+        }
+        return this.stock >= quantity;
+    }
+
 }
