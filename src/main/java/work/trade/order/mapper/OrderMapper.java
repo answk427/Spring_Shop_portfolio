@@ -4,7 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import work.trade.order.domain.Order;
 import work.trade.order.domain.OrderItem;
+import work.trade.order.domain.OrderStatus;
 import work.trade.order.dto.response.order.OrderDto;
+import work.trade.order.dto.response.order.OrderStatusDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
 import work.trade.order.dto.response.orderItem.OrderItemDto;
 import work.trade.product.domain.Category;
@@ -20,8 +22,10 @@ import work.trade.user.mapper.UserMapper;
 @Mapper(componentModel = "spring", uses = {ProductMapper.class})
 public interface OrderMapper {
 
-//Entity -> Response
+    //Entity -> Response
 //-------------------------------------//
+    OrderStatusDto toOrderStatusDto(OrderStatus status);
+
     @Mapping(target = "buyerId", source = "order.buyer.id")
     OrderDto toOrderDto(Order order);
 
