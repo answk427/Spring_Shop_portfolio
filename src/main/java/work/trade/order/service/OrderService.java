@@ -129,7 +129,10 @@ public class OrderService {
 
     //특정 상태의 주문 조회
     @Transactional(readOnly = true)
-    public Page<OrderSummaryDto> getUserOrdersByStatus(Long userId, OrderStatus status, Pageable pageable) {
+    public Page<OrderSummaryDto> getUserOrdersByStatus(Long userId, String statusCode, Pageable pageable) {
+        OrderStatus status = orderStatusRepository.findById(statusCode)
+                .orElseThrow(() -> new OrderStatusNotFoundException());
+
         return orderRepository.findByBuyer_IdAndStatus(userId, status, pageable)
                 .map(orderMapper::toOrderSummaryDto);
     }
