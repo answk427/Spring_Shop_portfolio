@@ -60,15 +60,15 @@ public class OrderService {
     public OrderDto createOrderFromCart(Long userId) {
         log.info("주문 생성 시작 - userId: {}", userId);
 
-        //1. 장바구니에 있는 상품들의 ID를 가져옴
+        //1. 사용자 검증
+        User buyer = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException());
+
+        //2. 장바구니에 있는 상품들의 ID를 가져옴
         List<CartItemDto> cartItemIdsForOrder = cartService.getCartItemIdsForOrder(userId);
         if (cartItemIdsForOrder.isEmpty()) {
             throw new CartEmptyException();
         }
-
-        //2. 사용자 검증
-        User buyer = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException());
 
         //3. 주문 항목 생성 및 재고 관리
         List<OrderItem> orderItems = new ArrayList<>();
