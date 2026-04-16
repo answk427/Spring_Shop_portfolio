@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class OrderSummaryDto {
     private Long id;
-    private OrderStatus status;
+    private OrderStatusDto status;
     private BigDecimal totalPrice;
     private Integer itemCount; //주문 항목 수
     private LocalDateTime createdAt;

@@ -16,7 +16,7 @@ import java.util.List;
 public class OrderDto {
     private Long id;
     private Long buyerId;
-    private OrderStatus status;
+    private OrderStatusDto status;
     private BigDecimal totalPrice;
     private List<OrderItemDto> orderItems;
     private LocalDateTime createdAt;
