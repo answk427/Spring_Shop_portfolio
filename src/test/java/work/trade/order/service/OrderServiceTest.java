@@ -365,7 +365,7 @@ class OrderServiceTest {
 
     @Test
     @Transactional
-    void getUserOrders_empty() {
+    void getUserOrdersEmpty() {
         Page<OrderSummaryDto> result =
                 orderService.getUserOrders(buyerId, Pageable.unpaged());
 
@@ -412,7 +412,7 @@ class OrderServiceTest {
 
     @Test
     @Transactional
-    void getUserOrdersByStatus_empty() {
+    void getUserOrdersByStatusEmpty() {
         //given
         OrderStatus shippedStatus = orderStatusRepository
                 .findById(OrderStatusConstant.SHIPPED)
@@ -428,7 +428,7 @@ class OrderServiceTest {
 
     @Test
     @Transactional
-    void executeByStatus_success_flow() {
+    void executeByStatusSuccessFlow() {
         //given
         addToCart(buyerId, productId1, 10);
         OrderDto order = orderService.createOrderFromCart(buyerId);
@@ -455,7 +455,7 @@ class OrderServiceTest {
 
     @Test
     @DisplayName("동시에 100명이 재고가 10개인 상품을 주문하면, 10명만 성공해야 한다")
-    void stock_concurrency_test() throws InterruptedException {
+    void stockConcurrencyTest() throws InterruptedException {
         // Given: 상품 재고 10개 설정 및 사용자 생성
         ProductCreateRequestDto productCreateRequestDto = new ProductCreateRequestDto();
         productCreateRequestDto.setCategoryId(1L);
