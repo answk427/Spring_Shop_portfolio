@@ -10,20 +10,20 @@ import work.trade.order.domain.Order;
 import work.trade.order.domain.OrderItem;
 import work.trade.order.domain.OrderStatus;
 import work.trade.order.dto.response.order.OrderDto;
+ import work.trade.order.dto.response.order.OrderStatusDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
 import work.trade.order.dto.response.orderItem.OrderItemDto;
+import work.trade.order.repository.OrderStatusRepository;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.user.domain.User;
 import work.trade.user.repository.UserRepository;
-import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -34,6 +34,9 @@ class OrderMapperTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
 
 //*********************************//
     Order getOrder() {
@@ -116,10 +119,10 @@ class OrderMapperTest {
         assertThat(productDto.getSellerName()).isEqualTo(product.getSeller().getName());
     }
 
-    void checkStatus(OrderStatus status1, OrderStatus status2) {
-        assertThat(status1.getName()).isEqualTo(status2.getName());
-        assertThat(status1.getCode()).isEqualTo(status2.getCode());
-        assertThat(status1.getDescription()).isEqualTo(status2.getDescription());
+    void checkStatus(OrderStatus status, OrderStatusDto statusDto) {
+        assertThat(status.getName()).isEqualTo(statusDto.getName());
+        assertThat(status.getCode()).isEqualTo(statusDto.getCode());
+        assertThat(status.getDescription()).isEqualTo(statusDto.getDescription());
     }
 
 //*********************************//
@@ -167,7 +170,7 @@ class OrderMapperTest {
         }
 
         //Status 검사
-        checkStatus(orderDto.getStatus(), order.getStatus());
+        checkStatus(order.getStatus(), orderDto.getStatus());
     }
 
     @Test
@@ -183,7 +186,10 @@ class OrderMapperTest {
         assertThat(orderSummaryDto.getTotalPrice()).isEqualTo(order.getTotalPrice());
         assertThat(orderSummaryDto.getItemCount()).isEqualTo(order.getOrderItems().size());
 
-        checkStatus(orderSummaryDto.getStatus(), order.getStatus());
+        checkStatus(order.getStatus(), orderSummaryDto.getStatus());
+        OrderStatusDto statusDto = orderSummaryDto.getStatus();
+        OrderStatus status = order.getStatus();
+        assertThat(orderSummaryDto.getItemCount()).isEqualTo(order.getOrderItems().size());
     }
 
     @Test

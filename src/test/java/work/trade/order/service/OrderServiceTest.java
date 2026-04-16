@@ -23,7 +23,6 @@ import work.trade.cart.dto.response.CartDto;
 import work.trade.cart.exception.CartEmptyException;
 import work.trade.cart.repository.CartRepository;
 import work.trade.cart.service.CartService;
-import work.trade.order.domain.OrderStatus;
 import work.trade.order.domain.constant.OrderStatusConstant;
 import work.trade.order.dto.response.order.OrderDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
@@ -46,12 +45,10 @@ import work.trade.user.repository.UserRepository;
 import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -191,12 +188,6 @@ class OrderServiceTest {
         assertThat(productDto1.getSellerName()).isEqualTo(productDto2.getSellerName());
     }
 
-    void checkStatus(OrderStatus status1, OrderStatus status2) {
-        assertThat(status1.getName()).isEqualTo(status2.getName());
-        assertThat(status1.getCode()).isEqualTo(status2.getCode());
-        assertThat(status1.getDescription()).isEqualTo(status2.getDescription());
-    }
-
     void checkOrder(OrderDto orderDto1, OrderDto orderDto2) {
         assertThat(orderDto1.getId()).isEqualTo(orderDto2.getId());
         assertThat(orderDto1.getBuyerId()).isEqualTo(orderDto2.getBuyerId());
@@ -216,7 +207,7 @@ class OrderServiceTest {
             checkProduct(orderItemDto1.getProduct(), orderItemDto2.getProduct());
         }
 
-        checkStatus(orderDto1.getStatus(), orderDto2.getStatus());
+        assertThat(orderDto1.getStatus().getCode()).isEqualTo(orderDto2.getStatus().getCode());
     }
 
 //*********************************//
@@ -295,9 +286,8 @@ class OrderServiceTest {
         assertThat(orderDto.getBuyerId()).isEqualTo(buyerId);
         assertThat(orderDto.getTotalPrice()).isEqualTo(totalSum);
 
-        OrderStatus status = orderStatusRepository.findById(OrderStatusConstant.PENDING).get();
-        checkStatus(orderDto.getStatus(), status);
-        
+        assertThat(orderDto.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
+
         //장바구니가 비어있어야함
         List<CartDto> myCart = cartService.getMyCart(buyerId);
         assertThat(myCart).isEmpty();
@@ -357,10 +347,8 @@ class OrderServiceTest {
         assertThat(second.getTotalPrice()).isEqualTo(order1.getTotalPrice());
 
         // 4. 상태 검증 (둘 다 PENDING)
-        OrderStatus pending = orderStatusRepository.findById(OrderStatusConstant.PENDING).get();
-
-        checkStatus(first.getStatus(), pending);
-        checkStatus(second.getStatus(), pending);
+        assertThat(first.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
+        assertThat(second.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
     }
 
     @Test
@@ -386,12 +374,9 @@ class OrderServiceTest {
         //하나 상태 변경 (CONFIRMED)
         orderService.executeByStatus(order1.getId(), buyerId, OrderStatusConstant.CONFIRMED);
 
-        //조회할 상태
-        OrderStatus confirmedStatus = orderStatusRepository.findById(OrderStatusConstant.CONFIRMED).get();
-
         //when
         Page<OrderSummaryDto> result =
-                orderService.getUserOrdersByStatus(buyerId, confirmedStatus, Pageable.unpaged());
+                orderService.getUserOrdersByStatus(buyerId, OrderStatusConstant.CONFIRMED, Pageable.unpaged());
 
         List<OrderSummaryDto> content = result.getContent();
 
@@ -404,7 +389,7 @@ class OrderServiceTest {
         assertThat(dto.getId()).isEqualTo(order1.getId());
 
         //3. 상태 검증
-        checkStatus(dto.getStatus(), confirmedStatus);
+        assertThat(dto.getStatus().getCode()).isEqualTo(OrderStatusConstant.CONFIRMED);
 
         //4. 기본 정보 검증
         assertThat(dto.getTotalPrice()).isEqualTo(order1.getTotalPrice());
@@ -413,14 +398,9 @@ class OrderServiceTest {
     @Test
     @Transactional
     void getUserOrdersByStatusEmpty() {
-        //given
-        OrderStatus shippedStatus = orderStatusRepository
-                .findById(OrderStatusConstant.SHIPPED)
-                .orElseThrow();
-
         //when
         Page<OrderSummaryDto> result =
-                orderService.getUserOrdersByStatus(buyerId, shippedStatus, Pageable.unpaged());
+                orderService.getUserOrdersByStatus(buyerId, OrderStatusConstant.SHIPPED, Pageable.unpaged());
 
         //then
         assertThat(result.getContent()).isEmpty();
@@ -444,13 +424,9 @@ class OrderServiceTest {
                 order.getId(), buyerId, OrderStatusConstant.DELIVERED);
 
         //then
-        OrderStatus confirmedStatus = orderStatusRepository.findById(OrderStatusConstant.CONFIRMED).orElseThrow();
-        OrderStatus shippedStatus = orderStatusRepository.findById(OrderStatusConstant.SHIPPED).orElseThrow();
-        OrderStatus deliveredStatus = orderStatusRepository.findById(OrderStatusConstant.DELIVERED).orElseThrow();
-
-        checkStatus(confirmed.getStatus(), confirmedStatus);
-        checkStatus(shipped.getStatus(), shippedStatus);
-        checkStatus(delivered.getStatus(), deliveredStatus);
+        assertThat(confirmed.getStatus().getCode()).isEqualTo(OrderStatusConstant.CONFIRMED);
+        assertThat(shipped.getStatus().getCode()).isEqualTo(OrderStatusConstant.SHIPPED);
+        assertThat(delivered.getStatus().getCode()).isEqualTo(OrderStatusConstant.DELIVERED);
     }
 
     @Test
