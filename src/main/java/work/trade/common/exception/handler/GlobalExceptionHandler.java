@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handle(Exception e) {
-        return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다.");
+        return ResponseEntity.internalServerError().body("서버 오류가 발생했습니다 :" + e.getMessage());
     }
 
     //BusinessException
