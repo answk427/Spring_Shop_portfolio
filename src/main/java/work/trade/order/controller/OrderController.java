@@ -13,7 +13,7 @@ import work.trade.order.dto.response.order.OrderSummaryDto;
 import work.trade.order.service.OrderService;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;

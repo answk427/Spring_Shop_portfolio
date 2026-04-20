@@ -16,7 +16,7 @@ import work.trade.user.mapper.UserMapper;
 import work.trade.user.service.UserService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 

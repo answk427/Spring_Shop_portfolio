@@ -15,7 +15,7 @@ import work.trade.cart.service.CartService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/carts")
+@RequestMapping("/api/carts")
 @RequiredArgsConstructor
 public class CartController {
 

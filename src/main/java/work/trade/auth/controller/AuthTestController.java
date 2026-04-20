@@ -14,7 +14,7 @@ import work.trade.auth.role.Role;
 import java.util.List;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AuthTestController {
 

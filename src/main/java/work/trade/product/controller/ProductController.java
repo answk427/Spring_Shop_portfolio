@@ -18,7 +18,7 @@ import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.product.service.ProductService;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;

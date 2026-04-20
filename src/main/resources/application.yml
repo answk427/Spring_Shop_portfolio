@@ -39,7 +39,7 @@ spring:
     validate-on-migrate: true
 
 server:
-  port: 8081
+  port: 8080
 
 jwt:
    secret: imsi-secret-key-afwefw-70684-96928592834928349283492834928349283
@@ -47,6 +47,9 @@ jwt:
    refresh:
      expiration: 604800000    # 7일 (ms)
 
+#todo: 배포시 도메인으로 변경
+cors:
+  allowed-origins: http://localhost:3000
 
 #logging:
 #  level:
