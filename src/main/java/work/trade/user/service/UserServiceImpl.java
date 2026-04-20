@@ -63,8 +63,9 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .build();
 
-        log.info("Complete CreateUser email: {}, userId: {}", dto.getEmail(), user.getId());
-        return userMapper.toDto(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        log.info("Complete CreateUser email: {}, userId: {}", dto.getEmail(), savedUser.getId());
+        return userMapper.toDto(savedUser);
     }
 
     @Override
