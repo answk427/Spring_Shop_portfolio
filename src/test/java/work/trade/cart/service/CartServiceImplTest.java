@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Testcontainers
+@Transactional
 class CartServiceImplTest {
 
     @Container
