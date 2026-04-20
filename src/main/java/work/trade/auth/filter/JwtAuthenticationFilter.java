@@ -34,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, AuthenticationException {
         String token = extractTokenFromRequest(request);
 
+        log.info("requestURI : {}", request.getRequestURI());
+
         // 유효한 토큰이 존재하는 경우
         try {
             if (token != null && jwtTokenUtil.isValidAccessToken(token)) {

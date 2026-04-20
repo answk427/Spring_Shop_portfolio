@@ -41,6 +41,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserCreateRequestDto dto) {
+        log.info("Start CreateUser email: {}", dto.getEmail());
+
         //중복 체크
         userRepository.findByEmail(dto.getEmail()).ifPresent(user -> {
             throw new UserDuplicateEmailException();
@@ -61,6 +63,7 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .build();
 
+        log.info("Complete CreateUser email: {}, userId: {}", dto.getEmail(), user.getId());
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -82,12 +85,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(Long id, UserUpdateDto dto) {
+        log.info("Start UpdateUser userId: {}", id);
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException());
         user.updateFromDto(dto);
         if (StringUtils.hasText(dto.getPassword())) {
             user.updatePasswordHash(createPasswordHash(dto.getPassword()));
         }
+
+        log.info("Complete UpdateUser userId: {}", id);
         return userMapper.toDto(user);
     }
 
@@ -109,6 +116,4 @@ public class UserServiceImpl implements UserService {
         }
         return userMapper.toDto(user);
     }
-
-
 }

@@ -1,6 +1,7 @@
 package work.trade.product.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import work.trade.user.repository.UserRepository;
 import java.util.Optional;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -37,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId) {
+        log.info("Start createProduct sellerId: {}, productName: {}", sellerId, dto.getName());
         User seller = userRepository.findById(sellerId).orElseThrow(() -> new UserNotFoundException());
 
         Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() -> new CategoryNotFoundException());
@@ -44,6 +47,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = mapper.toEntity(dto, seller, category);
 
         Product savedProduct = productRepository.save(product);
+
+        log.info("Complete createProduct productName: {}, productId: {}", dto.getName(), product.getId());
         return mapper.toDto(savedProduct);
     }
 
@@ -76,6 +81,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductUpdateDto dto, Long id, Long sellerId) {
+        log.info("Start update Product. sellerId: {}, productId: {}", sellerId, id);
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
 
         if (!product.getSeller().getId().equals(sellerId)) {
@@ -88,6 +94,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.updateFromDto(dto, updateCategory);
 
+        log.info("Complete update Product. productId: {}", id);
         return mapper.toDto(product);
     }
 

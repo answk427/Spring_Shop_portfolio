@@ -27,6 +27,8 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDto login(LoginRequestDto requestDto) {
+        log.info("Start Login. userEmail: {}", requestDto.getId());
+
         //로그인 요청시 ID = email
         UserDto user = userService.authenticate(requestDto.getId(), requestDto.getPassword());
 

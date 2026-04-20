@@ -74,15 +74,15 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItemDto cart : cartItemIdsForOrder) {
-            log.info("Thread: {} product 락 획득 시도", Thread.currentThread().getName());
+            log.debug("Thread: {} product 락 획득 시도", Thread.currentThread().getName());
             Product product = productRepository.findByIdWithLock(cart.productId())
                     .orElseThrow(() -> new ProductNotFoundException());
-            log.info("Thread: {} product 락 획득 성공", Thread.currentThread().getName());
+            log.debug("Thread: {} product 락 획득 성공", Thread.currentThread().getName());
 
             //재고 감소
-            log.info("재고 감소 전 product id:{}, product stock:{}", product.getId(), product.getStock());
+            log.debug("재고 감소 전 product id:{}, product stock:{}", product.getId(), product.getStock());
             product.decreaseStock(cart.quantity());
-            log.info("재고 감소 후 product stock : {}", product.getStock());
+            log.debug("재고 감소 후 product stock : {}", product.getStock());
 
             //OrderItem 생성
             OrderItem orderItem = OrderItem.builder()
