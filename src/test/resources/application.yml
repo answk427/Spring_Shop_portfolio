@@ -45,3 +45,7 @@ jwt:
   expiration: 900000       # 15분 (ms)
   refresh:
     expiration: 604800000    # 7일 (ms)
+
+#todo: 배포시 도메인으로 변경
+cors:
+  allowed-origins: http://localhost:3000
