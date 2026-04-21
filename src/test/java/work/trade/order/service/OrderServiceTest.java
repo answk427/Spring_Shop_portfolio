@@ -452,11 +452,12 @@ class OrderServiceTest {
         // When: 100명이 동시에 주문 시도
         for (int i = 0; i < threadCount; i++) {
             Long userId = createUser("user" + i, "email" + i + "@naver.com", "password1234" + i).getId();
-            addToCart(userId, productId, 1); // 1개씩 담기
 
             executorService.submit(() -> {
                 try {
-                    //        barrier.await(); // 모든 스레드가 준비될 때까지 대기
+                    //100명이 동시에 장바구니에 담음.
+                    //상황에 따라 재고부족 예외 발생할 수 있음.(10개의 스레드가 먼저 구매완료한 경우)
+                    addToCart(userId, productId, 1); // 1개씩 담기
                     log.info("[{}] 주문 시작", Thread.currentThread().getName());
                     orderService.createOrderFromCart(userId);
                     successCount.incrementAndGet();

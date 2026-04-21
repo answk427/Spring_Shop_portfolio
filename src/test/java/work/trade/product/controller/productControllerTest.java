@@ -122,13 +122,13 @@ class productControllerTest {
 
         //when, then
         //토큰 없을 시 인증 실패
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isUnauthorized());
 
         //토큰 인증 성공
-        MvcResult result = mockMvc.perform(post("/products")
+        MvcResult result = mockMvc.perform(post("/api/products")
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
@@ -154,7 +154,7 @@ class productControllerTest {
         ProductDto product = productService.createProduct(dto, testUserId);
 
         //when, then
-        mockMvc.perform(get("/products/" + product.getId().toString()))
+        mockMvc.perform(get("/api/products/" + product.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("testProductName"))
                 .andExpect(jsonPath("$.price").value(111))
@@ -172,7 +172,7 @@ class productControllerTest {
         updateDto.setDescription("updateDescription");
 
         //when, then
-        mockMvc.perform(put("/products/" + product.getId().toString())
+        mockMvc.perform(put("/api/products/" + product.getId().toString())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
@@ -196,7 +196,7 @@ class productControllerTest {
         updateDto.setDescription("updateDescription");
 
         //when, then
-        mockMvc.perform(delete("/products/" + product.getId().toString())
+        mockMvc.perform(delete("/api/products/" + product.getId().toString())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
@@ -206,7 +206,7 @@ class productControllerTest {
     }
 
     @Test
-    //@GetMapping("/products")
+    //@GetMapping("/api/products")
     void getProducts() throws Exception {
         // given - 상품 몇 개 생성
         productService.createProduct(getProductCreateRequestDto("상품1", new BigDecimal("1000")), testUserId);
@@ -215,7 +215,7 @@ class productControllerTest {
 
         // when, then
         // 토큰 없이도 조회 가능
-        mockMvc.perform(get("/products"))
+        mockMvc.perform(get("/api/products"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -224,7 +224,7 @@ class productControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1));
 
         // 페이징 파라미터 적용
-        mockMvc.perform(get("/products")
+        mockMvc.perform(get("/api/products")
                         .param("page", "0")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -234,7 +234,7 @@ class productControllerTest {
                 .andExpect(jsonPath("$.last").value(false));          // 마지막 페이지 아님
 
         // 2페이지
-        mockMvc.perform(get("/products")
+        mockMvc.perform(get("/api/products")
                         .param("page", "1")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -243,7 +243,7 @@ class productControllerTest {
     }
 
     @Test
-    //@GetMapping("/products/category/{categoryId}")
+    //@GetMapping("/api/products/category/{categoryId}")
     void getProductsByCategory() throws Exception {
         // given - 카테고리 2개 생성
         Category category2 = Category.builder().name("다른카테고리").build();
@@ -260,24 +260,24 @@ class productControllerTest {
 
         // when, then
         // testCategoryId로 조회 → 2개만 나와야 함
-        mockMvc.perform(get("/products/category/" + testCategoryId))
+        mockMvc.perform(get("/api/products/category/" + testCategoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.totalElements").value(2));
 
         // category2로 조회 → 1개만 나와야 함
-        mockMvc.perform(get("/products/category/" + category2.getId()))
+        mockMvc.perform(get("/api/products/category/" + category2.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
         // 존재하지 않는 카테고리 → 404
-        mockMvc.perform(get("/products/category/99999"))
+        mockMvc.perform(get("/api/products/category/99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    //@GetMapping("/products/my")
+    //@GetMapping("/api/products/my")
     void getMyProducts() throws Exception {
         // given - testUser 상품 2개, otherUser 상품 1개 생성
         productService.createProduct(getProductCreateRequestDto("내 상품1", new BigDecimal("1000")), testUserId);
@@ -294,18 +294,18 @@ class productControllerTest {
 
         // when, then
         // 토큰 없이 → 401
-        mockMvc.perform(get("/products/my"))
+        mockMvc.perform(get("/api/products/my"))
                 .andExpect(status().isUnauthorized());
 
         // testUser 토큰으로 조회 → 내 상품 2개만
-        mockMvc.perform(get("/products/my")
+        mockMvc.perform(get("/api/products/my")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.totalElements").value(2));
 
         // otherUser 토큰으로 조회 → 다른유저 상품 1개만
-        mockMvc.perform(get("/products/my")
+        mockMvc.perform(get("/api/products/my")
                         .header("Authorization", "Bearer " + otherUserToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))

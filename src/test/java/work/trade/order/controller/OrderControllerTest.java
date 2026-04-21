@@ -60,7 +60,7 @@ class OrderControllerTest {
 //**************************************//
 
     @Test
-    @DisplayName("주문 생성 - POST /orders")
+    @DisplayName("주문 생성 - POST /api/orders")
     @WithMockUser(username = "1") // Authentication.getName()이 "1"을 반환하도록 설정
     void createOrder() throws Exception {
         // given
@@ -69,7 +69,7 @@ class OrderControllerTest {
         when(orderService.createOrderFromCart(anyLong())).thenReturn(responseDto);
 
         // when & then
-        mockMvc.perform(post("/orders")
+        mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf()))
                 .andExpect(status().isCreated())
@@ -80,7 +80,7 @@ class OrderControllerTest {
 
 
     @Test
-    @DisplayName("주문 상세 조회 - GET /orders/{orderId}")
+    @DisplayName("주문 상세 조회 - GET /api/orders/{orderId}")
     @WithMockUser(username = "1")
     void getOrder() throws Exception {
         // given
@@ -89,7 +89,7 @@ class OrderControllerTest {
         when(orderService.getOrder(eq(orderId), anyLong())).thenReturn(responseDto);
 
         // when & then
-        mockMvc.perform(get("/orders/{orderId}", orderId))
+        mockMvc.perform(get("/api/orders/{orderId}", orderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(orderId))
                 .andExpect(jsonPath("$.totalPrice").value(10000))
@@ -97,7 +97,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("상태별 주문 목록 조회 - GET /orders/status/{status}")
+    @DisplayName("상태별 주문 목록 조회 - GET /api/orders/status/{status}")
     @WithMockUser(username = "1")
     void getUserOrdersByStatus() throws Exception {
         // given
@@ -115,7 +115,7 @@ class OrderControllerTest {
         when(orderService.getUserOrdersByStatus(anyLong(), eq(statusCode), any())).thenReturn(pageResponse);
 
         // when & then
-        mockMvc.perform(get("/orders/status/{status}", statusCode)
+        mockMvc.perform(get("/api/orders/status/{status}", statusCode)
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -125,7 +125,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 상태 변경 - PATCH /orders/{orderId}/status")
+    @DisplayName("주문 상태 변경 - PATCH /api/orders/{orderId}/status")
     @WithMockUser(username = "1")
     void setOrderStatus() throws Exception {
         // given
@@ -142,7 +142,7 @@ class OrderControllerTest {
                 .thenReturn(responseDto);
 
         // when & then
-        mockMvc.perform(patch("/orders/{orderId}/status", orderId)
+        mockMvc.perform(patch("/api/orders/{orderId}/status", orderId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))

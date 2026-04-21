@@ -63,7 +63,7 @@ class JwtAuthTest {
     //토큰 없이 허용된 접근 검증
     @Test
     void permitAll() throws Exception {
-        mockMvc.perform(get("/auth/test"))
+        mockMvc.perform(get("/api/auth/test"))
                 .andExpect(status().isOk());
     }
 
@@ -79,7 +79,7 @@ class JwtAuthTest {
     void login() throws Exception {
         LoginRequestDto loginRequestDto = new LoginRequestDto("test@test.com", "1234");
 
-        mockMvc.perform(post("/auth/test/login")
+        mockMvc.perform(post("/api/auth/test/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
@@ -92,7 +92,7 @@ class JwtAuthTest {
     void validateEmail() throws Exception {
         LoginRequestDto request = new LoginRequestDto("invalid-email", "1234");
 
-        mockMvc.perform(post("/auth/test/login")
+        mockMvc.perform(post("/api/auth/test/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -105,7 +105,7 @@ class JwtAuthTest {
         //given
         LoginRequestDto request = new LoginRequestDto("test@test.com", "1234");
 
-        String response = mockMvc.perform(post("/auth/test/login")
+        String response = mockMvc.perform(post("/api/auth/test/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andReturn()
@@ -115,7 +115,7 @@ class JwtAuthTest {
         String token = objectMapper.readTree(response).get("accessToken").asText();
 
         //when,then
-        mockMvc.perform(get("/requestWithToken")
+        mockMvc.perform(get("/api/requestWithToken")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
@@ -131,7 +131,7 @@ class JwtAuthTest {
         LoginRequestDto loginRequestDto = new LoginRequestDto(userCreateDto.getEmail(), userCreateDto.getPassword());
 
         //when, then
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
@@ -152,14 +152,14 @@ class JwtAuthTest {
 
         //when, then
         //존재하지 않는 아이디 로그인
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDtoEmail)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.accessToken").doesNotExist());
 
         //잘못된 비밀번호 로그인
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDtoPassword)))
                 .andExpect(status().isUnauthorized())
@@ -186,7 +186,7 @@ class JwtAuthTest {
         LoginRequestDto loginRequestDto = new LoginRequestDto(createRequestDto.getEmail(), createRequestDto.getPassword());
 
         //when, then
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
@@ -225,7 +225,7 @@ class JwtAuthTest {
         //token 유효기간 재설정
         ReflectionTestUtils.setField(jwtTokenUtil, "accessTokenExpiration", 36000);
         //AccessToken 재발급 요청
-        MvcResult result = mockMvc.perform(post("/auth/refresh")
+        MvcResult result = mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", refreshToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + accessToken))
@@ -235,7 +235,7 @@ class JwtAuthTest {
         String newAccessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
 
         //새로 발급받은 AccessToken으로 요청
-        mockMvc.perform(get("/requestWithToken")
+        mockMvc.perform(get("/api/requestWithToken")
                         .header("Authorization", "Bearer " + newAccessToken))
                 .andExpect(status().isOk());
     }

@@ -80,7 +80,7 @@ class CartControllerTest {
         dto.setProductId(productId);
         dto.setQuantity(quantity);
 
-        return mockMvc.perform(post("/carts")
+        return mockMvc.perform(post("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
@@ -148,7 +148,7 @@ class CartControllerTest {
         List<ProductSummaryDto> products = List.of(product1, product2);
 
         //when, then
-        ResultActions result = mockMvc.perform(get("/carts")
+        ResultActions result = mockMvc.perform(get("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk());
 
@@ -175,7 +175,7 @@ class CartControllerTest {
         cartUpdateRequestDto.setQuantity(4444);
 
         //when, then
-        mockMvc.perform(put("/carts/" + cartDto.getId())
+        mockMvc.perform(put("/api/carts/" + cartDto.getId())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cartUpdateRequestDto)))
@@ -190,12 +190,12 @@ class CartControllerTest {
         CartDto cartDto = objectMapper.readValue(responseBody, CartDto.class);
 
         //when, then
-        mockMvc.perform(delete("/carts/" + cartDto.getId())
+        mockMvc.perform(delete("/api/carts/" + cartDto.getId())
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isNoContent());
 
         //조회시 empty 확인
-        mockMvc.perform(get("/carts")
+        mockMvc.perform(get("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -215,12 +215,12 @@ class CartControllerTest {
         CartDto cartDto2 = objectMapper.readValue(responseBody2, CartDto.class);
 
         //when, then
-        mockMvc.perform(delete("/carts")
+        mockMvc.perform(delete("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isNoContent());
 
         //조회시 empty 확인
-        mockMvc.perform(get("/carts")
+        mockMvc.perform(get("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())

@@ -85,7 +85,7 @@ class UserControllerTest {
         createRequestDto.setName("testName");
 
         //when, then
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequestDto)))
                 .andExpect(jsonPath("$.email").value(createRequestDto.getEmail()))
@@ -102,7 +102,7 @@ class UserControllerTest {
         //init에서 생성한 유저, 토큰
 
         //when, then
-        mockMvc.perform(get("/users/me")
+        mockMvc.perform(get("/api/users/me")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(jsonPath("$.email").value(testUserEmail))
                 .andExpect(jsonPath("$.name").value(testUserName))
@@ -115,7 +115,7 @@ class UserControllerTest {
         //init에서 생성한 유저, 토큰
 
         //when, then
-        mockMvc.perform(get("/users/" + testUserId)
+        mockMvc.perform(get("/api/users/" + testUserId)
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(jsonPath("$.email").value(testUserEmail))
                 .andExpect(jsonPath("$.name").value(testUserName))
@@ -128,7 +128,7 @@ class UserControllerTest {
         //init에서 생성한 유저, 토큰
 
         //when, then
-        mockMvc.perform(get("/users/email")
+        mockMvc.perform(get("/api/users/email")
                         .header("Authorization", "Bearer " + testUserToken)
                         .param("email", testUserEmail))
                 .andExpect(jsonPath("$.email").value(testUserEmail))
@@ -145,7 +145,7 @@ class UserControllerTest {
         updateDto.setName("updateName");
 
         //when
-        mockMvc.perform(put("/users/me")
+        mockMvc.perform(put("/api/users/me")
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
@@ -179,7 +179,7 @@ class UserControllerTest {
         //init에서 생성한 유저, 토큰
 
         //when
-        mockMvc.perform(delete("/users/me")
+        mockMvc.perform(delete("/api/users/me")
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isNoContent());
 
