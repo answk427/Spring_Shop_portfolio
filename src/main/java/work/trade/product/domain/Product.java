@@ -68,6 +68,12 @@ public class Product {
     }
 
     public void decreaseStock(Integer quantity) {
+        if (canDecreaseStock(quantity)) {
+            this.stock -= quantity;
+        }
+    }
+
+    public boolean canDecreaseStock(Integer quantity) {
         if (quantity == null || quantity <= 0) {
             throw new IllegalArgumentException("수량은 1이상이어야 합니다.");
         }
@@ -78,7 +84,7 @@ public class Product {
                     this.stock);
         }
 
-        this.stock -= quantity;
+        return true;
     }
 
     /**

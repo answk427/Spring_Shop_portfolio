@@ -37,10 +37,14 @@ public class CartServiceImpl implements CartService{
     @Override
     public CartDto addToCart(CartAddRequestDto dto, Long userId) {
         log.info("Start addToCart userId: {}, productId: {}", userId, dto.getProductId());
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException());
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ProductNotFoundException());
+
+        //재고가 충분한지 확인
+        product.canDecreaseStock(dto.getQuantity());
 
         //이미 담긴 상품이면 수량 추가
         Optional<Cart> existingCart = cartRepository.findByUser_IdAndProduct_Id(user.getId(), product.getId());
