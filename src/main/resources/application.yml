@@ -8,23 +8,16 @@ spring:
   profiles:
     active: local
 
-  datasource:
-    url: jdbc:mysql://localhost:3306/study_trade?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: asdf
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  redis:
-    host: localhost
-    port: 6379
-    timeout: 2000
-    password:
-    database: 0
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
+  # Redis 공통 옵션
+  data:
+    redis:
+      timeout: 2000
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
   jpa:
     hibernate:
@@ -37,20 +30,11 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: true
-
 server:
   port: 8080
 
 jwt:
-   secret: imsi-secret-key-afwefw-70684-96928592834928349283492834928349283
-   expiration: 900000       # 15분 (ms)
-   refresh:
-     expiration: 604800000    # 7일 (ms)
-
-#todo: 배포시 도메인으로 변경
-cors:
-  allowed-origins: http://localhost:3000
-
-#logging:
-#  level:
-#    org.springframework.security: DEBUG
+  secret: ${JWT_SECRET:imsi-secret-key-afwefw-70684-96928592834928349283492834928349283}
+  expiration: 900000
+  refresh:
+    expiration: 604800000
