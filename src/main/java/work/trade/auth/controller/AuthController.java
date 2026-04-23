@@ -116,4 +116,16 @@ public class AuthController {
 
         throw new RuntimeException("RefreshToken 쿠키를 찾을 수 없습니다");
     }
+
+//*************************************//
+
+    @GetMapping("/cicdTest")
+    public String cicdTest() {
+        return "CICD 배포 성공";
+    }
+
 }
+
+
+
+
