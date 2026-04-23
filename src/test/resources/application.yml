@@ -3,7 +3,7 @@ spring:
     active: test
 
   datasource:
-    url: jdbc:mysql://localhost:3306/study_trade?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/trade_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: asdf
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -46,6 +46,5 @@ jwt:
   refresh:
     expiration: 604800000    # 7일 (ms)
 
-#todo: 배포시 도메인으로 변경
 cors:
   allowed-origins: http://localhost:3000
