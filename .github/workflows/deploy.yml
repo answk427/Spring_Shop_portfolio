@@ -49,5 +49,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/Spring_Shop_Deploy  
-            docker compose pull trade-backend # 백엔드 이미지만 새로 받기
-            docker compose up -d trade-backend # 변경된 서비스만 재시작
+            docker compose pull app # 백엔드 이미지만 새로 받기
+            docker compose up -d app # 변경된 서비스만 재시작
