@@ -1,0 +1,50 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "main" ] # main에 푸시될 때 실행
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # (1) 프로젝트 빌드 (JDK 21)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      # (2) DockerHub 이미지 빌드 & 푸시
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/trade-backend:latest
+
+  deploy:
+    needs: build-and-push # 빌드가 성공해야 실행
+    runs-on: ubuntu-latest
+    steps:
+      - name: EC2 SSH Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/Spring_Shop_Deploy  
+            docker compose pull trade-backend # 백엔드 이미지만 새로 받기
+            docker compose up -d trade-backend # 변경된 서비스만 재시작
