@@ -48,12 +48,9 @@ public class UserServiceImpl implements UserService {
             throw new UserDuplicateEmailException();
         });
 
-        String authProviderId = dto.getAuthProviderId();
-        AuthProvider authProvider = null;
-        if (authProviderId != null) {
-            authProvider = apRepository.findById(authProviderId)
-                    .orElseThrow(() -> new AuthProviderNotFoundException());
-        }
+        String authProviderId = dto.getAuthProviderId() == null ? "LOCAL" : dto.getAuthProviderId();
+        AuthProvider authProvider = apRepository.findById(authProviderId)
+                .orElseThrow(() -> new AuthProviderNotFoundException());
 
         User user = User.builder()
                 .name(dto.getName())
@@ -71,7 +68,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserDto findUser(Long id) {
-        return userRepository.findById(id)
+        return userRepository.findByIdFetchJoin(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new UserNotFoundException());
     }
@@ -79,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserDto findByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailFetchJoin(email)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new UserNotFoundException());
     }
@@ -88,7 +85,7 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(Long id, UserUpdateDto dto) {
         log.info("Start UpdateUser userId: {}", id);
 
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdFetchJoin(id)
                 .orElseThrow(() -> new UserNotFoundException());
         user.updateFromDto(dto);
         if (StringUtils.hasText(dto.getPassword())) {
@@ -108,7 +105,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto authenticate(String email, String password) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailFetchJoin(email)
                 .orElseThrow(() -> new UserNotFoundException());
 
         //비밀번호 검증

@@ -54,48 +54,48 @@ class UserServiceImplTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    //------------
+//------------------------------------------------------------------//
+
     private static final String testUserName = "testUserName";
     private static final String testUserEmail = "test@naver.com";
     private static final String testPassword = "testPasswordHash";
     private Long testUserId = -1L;
 
-    private static final String testApCode = "TestAuthProviderCode";
-    private static final String testApName = "TestAuthProviderName";
-    private static final String testApDesc = "TestAuthProviderDescription";
-    private String testApId = null;
-//------------------------------------------------------------------//
+    private String testApCode = "LOCAL";
+    private String testApName = null;
+    private String testApDesc = null;
+
     @BeforeEach
     @Transactional
     void InitData() {
-        AuthProvider authProvider = AuthProvider.builder()
-                .code(testApCode)
-                .name(testApName)
-                .description(testApDesc)
-                .build();
-
-        AuthProvider saved = apRepo.save(authProvider);
-        testApId = saved.getCode();
-
         testUserId = createTestUser(testUserName, testUserEmail, testPassword).getId();
+
+        AuthProvider authProvider = apRepo.getReferenceById(testApCode);
+        testApName = authProvider.getName();
+        testApDesc = authProvider.getDescription();
     }
 
     @Transactional
     UserDto createTestUser(String name, String email, String password) {
-        AuthProvider referenceById = apRepo.getReferenceById(testApId);
-
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
-        createRequestDto.setName(name);
-        createRequestDto.setEmail(email);
-        createRequestDto.setPassword(password);
-        createRequestDto.setAuthProviderId(referenceById.getCode());
-
-        UserDto userDto = userService.createUser(createRequestDto);
-        em.flush();
-        em.clear();
-
-        return userDto;
+        UserCreateRequestDto createRequestDto = new UserCreateRequestDto(email, password, name, testApCode);
+        return userService.createUser(createRequestDto);
     }
+
+    private void checkAuthProvider(AuthProviderDto findAuthProvider) {
+        assertThat(findAuthProvider.getCode()).isEqualTo(testApCode);
+        assertThat(findAuthProvider.getName()).isEqualTo(testApName);
+        assertThat(findAuthProvider.getDescription()).isEqualTo(testApDesc);
+    }
+
+    private void checkUserDto(UserDto userDto, Long userId, String userName, String userEmail) {
+        assertThat(userDto).isNotNull();
+        assertThat(userDto.getId()).isEqualTo(userId);
+        assertThat(userDto.getName()).isEqualTo(userName);
+        assertThat(userDto.getEmail()).isEqualTo(userEmail);
+        assertThat(userDto.getCreatedAt()).isNotNull();
+        assertThat(userDto.getUpdatedAt()).isNotNull();
+    }
+//------------------------------------------------------------------//
 
     @Test
     @Transactional
@@ -106,7 +106,9 @@ class UserServiceImplTest {
         String userPassword = "createTestPasswordHash";
 
         //when
+        System.out.println("================= [로직 시작] =================");
         UserDto createUserDto = createTestUser(userName, userEmail, userPassword);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         //Repository에서 얻은 Entity 검증
@@ -134,23 +136,23 @@ class UserServiceImplTest {
         //given
         //@BeforeEach에서 데이터 삽입
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         UserDto userDto = userService.findUser(testUserId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
-        assertThat(userDto).isNotNull();
-        assertThat(userDto.getId()).isEqualTo(testUserId);
-        assertThat(userDto.getName()).isEqualTo(testUserName);
-        assertThat(userDto.getEmail()).isEqualTo(testUserEmail);
-        assertThat(userDto.getCreatedAt()).isNotNull();
-        assertThat(userDto.getUpdatedAt()).isNotNull();
+        checkUserDto(userDto, testUserId, testUserName, testUserEmail);
 
         if (userDto.getAuthProvider() != null) {
             AuthProviderDto findAuthProvider = userDto.getAuthProvider();
-            assertThat(findAuthProvider.getCode()).isEqualTo(testApCode);
-            assertThat(findAuthProvider.getName()).isEqualTo(testApName);
-            assertThat(findAuthProvider.getDescription()).isEqualTo(testApDesc);
+            checkAuthProvider(findAuthProvider);
         }
+
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 나가는지 확인
     }
 
     @Test
@@ -167,8 +169,13 @@ class UserServiceImplTest {
         LocalDateTime oldCreatedAt = oldUser.getCreatedAt();
         LocalDateTime oldUpdatedAt = oldUser.getUpdatedAt();
 
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         userService.updateUser(testUserId, updateDto);
+        System.out.println("================= [로직 종료] =================");
+
         Optional<User> userByRepoOpt = userRepository.findById(testUserId);
 
         //then
@@ -187,6 +194,8 @@ class UserServiceImplTest {
 
         //없는 id 변경 시도시 예외 반환
         assertThatThrownBy(() -> userService.updateUser(1818L, updateDto));
+
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 나가는지 확인
     }
 
     @Test
@@ -195,10 +204,43 @@ class UserServiceImplTest {
         //given
         //BeforeEach에서 데이터 삽입
 
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         userService.deleteById(testUserId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         assertThatThrownBy(() -> userService.findUser(testUserId)).isInstanceOf(UserNotFoundException.class);
+
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 나가는지 확인
     }
+
+    @Test
+    @Transactional
+    void findByEmail() {
+        //given
+        //@BeforeEach에서 데이터 삽입
+
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
+        //when
+        System.out.println("================= [로직 시작] =================");
+        UserDto userDto = userService.findByEmail(testUserEmail);
+        System.out.println("================= [로직 종료] =================");
+
+        //then
+        checkUserDto(userDto, testUserId, testUserName, testUserEmail);
+
+        if (userDto.getAuthProvider() != null) {
+            AuthProviderDto findAuthProvider = userDto.getAuthProvider();
+            checkAuthProvider(findAuthProvider);
+        }
+
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 나가는지 확인
+    }
+
+
 }

@@ -63,6 +63,13 @@ dependencies {
 	//Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
+	//QueryDSL
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	//QClass 생성용 Annotation Processor
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
 	//-----------test
 	//lombok
 	testImplementation 'org.projectlombok:lombok'
@@ -81,6 +88,21 @@ dependencies {
 
 	//spring security
 	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+//QClass 생성 위치 설정
+def querydslDir = "src/main/generated"
+
+sourceSets {
+	main.java.srcDirs += [ querydslDir ]
+}
+
+tasks.withType(JavaCompile) {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+clean {
+	delete file(querydslDir)
 }
 
 tasks.named('test') {

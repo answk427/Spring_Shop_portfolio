@@ -54,35 +54,32 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto findProduct(Long id) {
-        return productRepository.findById(id).
+        return productRepository.findByIdFetchJoin(id).
                 map(mapper::toDto)
                 .orElseThrow(() -> new ProductNotFoundException());
     }
 
     @Override
     public Page<ProductSummaryDto> findProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(mapper::toSummaryDto);
+        return productRepository.findProductsWithPagination(pageable, null, null);
     }
 
     @Override
     public Page<ProductSummaryDto> findProductsByCategory(Pageable pageable, Long categoryId) {
         categoryRepository.findById(categoryId).
                 orElseThrow(() -> new CategoryNotFoundException());
-        return productRepository.findByCategory_Id(categoryId, pageable)
-                .map(mapper::toSummaryDto);
+        return productRepository.findProductsWithPagination(pageable, categoryId, null);
     }
 
     @Override
     public Page<ProductSummaryDto> findProductsBySellerId(Pageable pageable, Long sellerId) {
-        return productRepository.findBySeller_Id(sellerId, pageable)
-                .map(mapper::toSummaryDto);
+        return productRepository.findProductsWithPagination(pageable, null, sellerId);
     }
 
     @Override
     public ProductDto updateProduct(ProductUpdateDto dto, Long id, Long sellerId) {
         log.info("Start update Product. sellerId: {}, productId: {}", sellerId, id);
-        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
+        Product product = productRepository.findByIdFetchJoin(id).orElseThrow(() -> new ProductNotFoundException());
 
         if (!product.getSeller().getId().equals(sellerId)) {
             throw new ProductNotEqualSeller();

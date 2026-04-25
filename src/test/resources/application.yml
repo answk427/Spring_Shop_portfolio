@@ -23,11 +23,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-#    show-sql: true
+    show-sql: true
     properties:
       hibernate:
         highlight_sql: true # 콘솔에서 SQL 키워드에 색상 부여 (가독성 UP)
-        use_sql_comments: true # 어떤 로직 때문에 쿼리가 나갔는지 주석 표시
+        use_sql_comments: false # 어떤 로직 때문에 쿼리가 나갔는지 주석 표시
 
   flyway:
     enabled: true
