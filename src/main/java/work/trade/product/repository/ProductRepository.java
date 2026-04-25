@@ -14,7 +14,7 @@ import work.trade.product.domain.Product;
 import javax.swing.text.html.Option;
 import java.util.Optional;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long>, ProductRepositoryCustom {
     Page<Product> findByCategory_Id(Long categoryId, Pageable pageable);
     Page<Product> findBySeller_Id(Long sellerId, Pageable pageable);
 
@@ -22,4 +22,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     @QueryHints({@QueryHint(name = "jakarta.persistence.cache.retrieveMode", value = "BYPASS")})
     Optional<Product> findByIdWithLock(@Param("id") Long id);
+
+//===============JOIN FETCH FUNC==================//
+    @Query("select p from Product p " +
+            "join fetch p.seller " +
+            "join fetch p.category " +
+            "where p.id = :id")
+    Optional<Product> findByIdFetchJoin(@Param("id") Long id);
 }
