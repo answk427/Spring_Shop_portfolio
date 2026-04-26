@@ -40,7 +40,7 @@ public class CartServiceImpl implements CartService{
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException());
-        Product product = productRepository.findById(dto.getProductId())
+        Product product = productRepository.findByIdFetchJoin(dto.getProductId())
                 .orElseThrow(() -> new ProductNotFoundException());
 
         //재고가 충분한지 확인
@@ -68,7 +68,7 @@ public class CartServiceImpl implements CartService{
     @Override
     @Transactional(readOnly = true)
     public List<CartDto> getMyCart(Long userId) {
-        return cartRepository.findByUser_Id(userId)
+        return cartRepository.findByUser_IdFetchJoin(userId)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
@@ -77,14 +77,14 @@ public class CartServiceImpl implements CartService{
     @Override
     public List<CartItemDto> getCartItemIdsForOrder(Long userId) {
         return cartRepository.findByUser_Id(userId).stream()
-                .map(cart -> new CartItemDto(cart.getProduct().getId(), cart.getQuantity()))
+                .map(mapper::toItemDto)
                 .toList();
     }
 
     @Override
     public CartDto updateQuantity(CartUpdateRequestDto dto, Long cartId, Long userId) {
         log.info("Start update Cart Quantity. cartId: {}, userId: {}", cartId, userId);
-        Cart cart = cartRepository.findById(cartId)
+        Cart cart = cartRepository.findByIdFetchJoin(cartId)
                 .orElseThrow(() -> new CartNotFoundException());
 
         if (!cart.getUser().getId().equals(userId)) {

@@ -6,6 +6,7 @@ import work.trade.cart.domain.Cart;
 import work.trade.cart.dto.request.CartAddRequestDto;
 import work.trade.cart.dto.request.CartUpdateRequestDto;
 import work.trade.cart.dto.response.CartDto;
+import work.trade.cart.dto.response.CartItemDto;
 import work.trade.product.domain.Product;
 import work.trade.product.mapper.ProductMapper;
 import work.trade.user.domain.User;
@@ -23,4 +24,7 @@ public interface CartMapper {
 //-------------------------------------//
     @Mapping(target = "product", source = "cart.product")
     CartDto toDto(Cart cart);
+
+    @Mapping(target = "productId", source = "cart.product.id")
+    CartItemDto toItemDto(Cart cart);
 }
