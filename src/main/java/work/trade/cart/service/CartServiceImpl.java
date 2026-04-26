@@ -77,7 +77,7 @@ public class CartServiceImpl implements CartService{
     @Override
     public List<CartItemDto> getCartItemIdsForOrder(Long userId) {
         return cartRepository.findByUser_Id(userId).stream()
-                .map(cart -> new CartItemDto(cart.getProduct().getId(), cart.getQuantity()))
+                .map(mapper::toItemDto)
                 .toList();
     }
 
