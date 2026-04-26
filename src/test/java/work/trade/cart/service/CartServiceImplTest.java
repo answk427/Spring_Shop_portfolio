@@ -1,5 +1,6 @@
 package work.trade.cart.service;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.cart.dto.request.CartAddRequestDto;
 import work.trade.cart.dto.request.CartUpdateRequestDto;
 import work.trade.cart.dto.response.CartDto;
+import work.trade.cart.dto.response.CartItemDto;
 import work.trade.product.domain.Category;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.response.ProductDto;
@@ -37,6 +39,8 @@ class CartServiceImplTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("testpw");
+
+    @Autowired private EntityManager em;
 
 //******************************//
     @Autowired private CartService cartService;
@@ -90,8 +94,14 @@ class CartServiceImplTest {
         cartAddRequestDto.setProductId(productId1);
         cartAddRequestDto.setQuantity(100);
 
+        //N+1문제 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when(기존에 없던 상품 추가)
+        System.out.println("================= [로직 시작] =================");
         CartDto cartDto = cartService.addToCart(cartAddRequestDto, userId);
+        System.out.println("================= [로직 종료] =================");
+
         Long cartId = cartDto.getId();
 
         //then
@@ -104,6 +114,13 @@ class CartServiceImplTest {
         //then
         assertThat(cartDto2.getProduct().getId()).isEqualTo(productId1);
         assertThat(cartDto2.getQuantity()).isEqualTo(cartAddRequestDto.getQuantity() * 2);
+
+        //[로직시작] [로직종료] 사이에 SQL로그 확인
+        //올바른 유저인지 확인 SELECT USER
+        //상품 재고 확인 SELECT PRODUCT
+        //장바구니에 이미 존재하는지 확인 SELECT CART
+        //장바구니에 추가 ADD CART
+        //SQL 총 4번
     }
 
     @Test
@@ -120,8 +137,14 @@ class CartServiceImplTest {
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
 
+        //N+1문제 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         List<CartDto> myCart = cartService.getMyCart(userId);
+        System.out.println("================= [로직 종료] =================");
+
         CartDto myCartDto1 = myCart.get(0);
         CartDto myCartDto2 = myCart.get(1);
 
@@ -136,6 +159,8 @@ class CartServiceImplTest {
         assertThat(myCartDto2.getProduct().getId()).isEqualTo(cartDto2.getProduct().getId());
         assertThat(myCartDto2.getQuantity()).isEqualTo(cartDto2.getQuantity());
 
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
+
     }
 
     @Test
@@ -149,11 +174,18 @@ class CartServiceImplTest {
         CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto();
         cartUpdateRequestDto.setQuantity(4444);
 
+        //N+1문제 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         CartDto updatedCartDto = cartService.updateQuantity(cartUpdateRequestDto, createdCartDto.getId(), userId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         assertThat(updatedCartDto.getQuantity()).isEqualTo(4444);
+
+        //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
     }
 
     @Test
@@ -164,13 +196,22 @@ class CartServiceImplTest {
         cartAddRequestDto.setQuantity(100);
         CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, userId);
 
+        //N+1문제 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         cartService.deleteCartItem(createdCartDto.getId(), userId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         List<CartDto> myCart = cartService.getMyCart(userId);
 
         assertThat(myCart).isEmpty();
+
+        //[로직시작] [로직종료] 사이에 select SQL로그 1번 확인
+        //flush시 delete sql로그 1번 확인
+
     }
 
     @Test
@@ -188,10 +229,43 @@ class CartServiceImplTest {
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
 
         //when
+        System.out.println("================= [로직 시작] =================");
         cartService.deleteAllCartItems(userId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         List<CartDto> myCart = cartService.getMyCart(userId);
         assertThat(myCart).isEmpty();
+    }
+
+    @Test
+    void getCartItemIdsForOrder() {
+        //given
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
+        cartAddRequestDto.setProductId(productId1);
+        cartAddRequestDto.setQuantity(100);
+
+        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto();
+        cartAddRequestDto2.setProductId(productId2);
+        cartAddRequestDto2.setQuantity(100);
+
+        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
+        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
+
+        //when
+        System.out.println("================= [로직 시작] =================");
+        List<CartItemDto> cartItems = cartService.getCartItemIdsForOrder(userId);
+        System.out.println("================= [로직 종료] =================");
+
+        //then
+        assertThat(cartItems.size()).isEqualTo(2);
+
+        assertThat(cartItems.get(0).productId()).isEqualTo(cartDto1.getProduct().getId());
+        assertThat(cartItems.get(0).quantity()).isEqualTo(cartDto1.getQuantity());
+
+        assertThat(cartItems.get(1).productId()).isEqualTo(cartDto2.getProduct().getId());
+        assertThat(cartItems.get(1).quantity()).isEqualTo(cartDto2.getQuantity());
+
+        //[로직시작] [로직종료] 사이에 select SQL로그 1번 확인
     }
 }
