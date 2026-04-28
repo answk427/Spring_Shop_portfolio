@@ -10,7 +10,7 @@ import work.trade.order.domain.OrderStatus;
 
 import java.util.Optional;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepositoryCustom {
     //사용자의 특정 주문 조회
     Optional<Order> findByIdAndBuyer_Id(Long orderId, Long buyerId);
 
@@ -27,4 +27,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("status") OrderStatus status,
             Pageable pageable
     );
+
+    //===============JOIN FETCH FUNC==================//
+    @Query("select o from Order o " +
+            "join fetch o.status " +
+            "join fetch o.orderItems oi " +
+            "join fetch oi.product p " +
+            "join fetch p.category " +
+            "join fetch p.seller " +
+            "where o.id = :orderId and o.buyer.id = :userId")
+    Optional<Order> findByIdAndBuyer_IdFetchJoin(@Param("orderId") Long orderId, @Param("userId") Long userId);
 }

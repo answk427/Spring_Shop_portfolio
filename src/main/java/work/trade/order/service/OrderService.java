@@ -30,8 +30,8 @@ import work.trade.user.domain.User;
 import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -71,28 +71,22 @@ public class OrderService {
         }
 
         //3. 주문 항목 생성 및 재고 관리
-        List<OrderItem> orderItems = new ArrayList<>();
+        List<Long> productIds = cartItemIdsForOrder.stream()
+                .map(CartItemDto::productId)
+                .sorted()
+                .toList();
 
-        for (CartItemDto cart : cartItemIdsForOrder) {
-            log.debug("Thread: {} product 락 획득 시도", Thread.currentThread().getName());
-            Product product = productRepository.findByIdWithLock(cart.productId())
-                    .orElseThrow(() -> new ProductNotFoundException());
-            log.debug("Thread: {} product 락 획득 성공", Thread.currentThread().getName());
+        log.debug("Thread: {} product 락 획득 시도", Thread.currentThread().getName());
+        List<Product> products = productRepository.findAllByIdWithLock(productIds);
+        log.debug("Thread: {} product 락 획득 성공", Thread.currentThread().getName());
 
-            //재고 감소
-            log.debug("재고 감소 전 product id:{}, product stock:{}", product.getId(), product.getStock());
-            product.decreaseStock(cart.quantity());
-            log.debug("재고 감소 후 product stock : {}", product.getStock());
-
-            //OrderItem 생성
-            OrderItem orderItem = OrderItem.builder()
-                    .product(product)
-                    .quantity(cart.quantity())
-                    .build();
-            orderItems.add(orderItem);
-
-            log.info("주문 항목 생성 - productId: {}, quantity: {}", product.getId(), cart.quantity());
-        }
+        List<OrderItem> orderItems = cartItemIdsForOrder.stream().map(cartItemDto -> {
+            Product product = products.stream()
+                    .filter(p -> p.getId().equals(cartItemDto.productId())).
+                    findFirst().get();
+            product.decreaseStock(cartItemDto.quantity());
+            return OrderItem.builder().product(product).quantity(cartItemDto.quantity()).build();
+        }).toList();
 
         //4. Order 생성 및 저장
         OrderStatus pendingStatus = orderStatusRepository.findById(OrderStatusConstant.PENDING)
@@ -107,7 +101,7 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         //장바구니 비우기
-        cartService.deleteAllCartItems(userId);
+        cartService.deleteAllCartItemsInBatch(userId);
         log.info("주문 생성 완료 - orderId: {}, totalPrice: {}", savedOrder.getId(), savedOrder.getTotalPrice());
 
         return orderMapper.toOrderDto(savedOrder);
@@ -123,8 +117,7 @@ public class OrderService {
     //사용자의 모든 주문 조회
     @Transactional(readOnly = true)
     public Page<OrderSummaryDto> getUserOrders(Long userId, Pageable pageable) {
-        return orderRepository.findByBuyer_IdOrderByCreatedAtDesc(userId, pageable)
-                .map(orderMapper::toOrderSummaryDto);
+        return orderRepository.findOrdersWithPagination(userId, null, pageable);
     }
 
     //특정 상태의 주문 조회
@@ -133,8 +126,7 @@ public class OrderService {
         OrderStatus status = orderStatusRepository.findById(statusCode)
                 .orElseThrow(() -> new OrderStatusNotFoundException());
 
-        return orderRepository.findByBuyer_IdAndStatus(userId, status, pageable)
-                .map(orderMapper::toOrderSummaryDto);
+        return orderRepository.findOrdersWithPagination(userId, statusCode, pageable);
     }
 
     public OrderDto executeByStatus(Long orderId, Long userId, String targetStatus) {
@@ -218,7 +210,7 @@ public class OrderService {
      * 사용자의 주문 조회 (권한 검증)
      */
     private Order getOrderByIdAndUserId(Long orderId, Long userId) {
-        return orderRepository.findByIdAndBuyer_Id(orderId, userId)
+        return orderRepository.findByIdAndBuyer_IdFetchJoin(orderId, userId)
                 .orElseThrow(() -> new OrderNotFoundException());
     }
 
