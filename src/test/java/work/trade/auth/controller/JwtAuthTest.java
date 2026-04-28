@@ -1,6 +1,5 @@
 package work.trade.auth.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
@@ -27,7 +26,6 @@ import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.response.UserDto;
 import work.trade.user.service.UserService;
 
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,41 +43,38 @@ class JwtAuthTest {
             .withUsername("test")
             .withPassword("testpw");
 
-    private final MockMvc mockMvc;
-    private final ObjectMapper objectMapper;
-    private final UserService userService;
-    private final JwtTokenUtil jwtTokenUtil;
-    private final AuthService authService;
 
     @Autowired
-    public JwtAuthTest(MockMvc mockMvc, ObjectMapper objectMapper, UserService userService, JwtTokenUtil jwtTokenUtil, AuthService authService) {
-        this.mockMvc = mockMvc;
-        this.objectMapper = objectMapper;
-        this.userService = userService;
-        this.jwtTokenUtil = jwtTokenUtil;
-        this.authService = authService;
-    }
+    private MockMvc mockMvc;
 
-    //토큰 없이 허용된 접근 검증
-    @Test
-    void permitAll() throws Exception {
-        mockMvc.perform(get("/api/auth/test"))
-                .andExpect(status().isOk());
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    //토큰 없으면 401(인증X)
-    @Test
-    void notPermit() throws Exception {
-        mockMvc.perform(get("/notPermit"))
-                .andExpect(status().isUnauthorized());
-    }
+    @Autowired
+    private UserService userService;
 
-    //로그인 토큰 반환
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private AuthService authService;
+
+//*******************************//
+
     @Test
+    @DisplayName("로그인 시 JwtToken 반환 확인")
     void login() throws Exception {
-        LoginRequestDto loginRequestDto = new LoginRequestDto("test@test.com", "1234");
+        //given
+        String mail = "test@test.com";
+        String password = "asdf1234";
+        UserCreateRequestDto createRequestDto = new UserCreateRequestDto(mail, password, "user1", "LOCAL");
+        UserDto userDto = userService.createUser(createRequestDto);
 
-        mockMvc.perform(post("/api/auth/test/login")
+
+        //when, then
+        LoginRequestDto loginRequestDto = new LoginRequestDto(mail, password);
+
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
@@ -87,40 +82,17 @@ class JwtAuthTest {
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
 
-    // 4. 유효하지 않은 이메일 형식 - 400
     @Test
+    @DisplayName("유효하지 않은 이메일 형식 검증 되는지 확인")
     void validateEmail() throws Exception {
         LoginRequestDto request = new LoginRequestDto("invalid-email", "1234");
 
-        mockMvc.perform(post("/api/auth/test/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
-
-    //토큰 실어서 요청 - 통과
-    @Test
-    void requestWithToken() throws Exception {
-        //given
-        LoginRequestDto request = new LoginRequestDto("test@test.com", "1234");
-
-        String response = mockMvc.perform(post("/api/auth/test/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String token = objectMapper.readTree(response).get("accessToken").asText();
-
-        //when,then
-        mockMvc.perform(get("/api/requestWithToken")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
-    }
-
-    //DB에 유저 만들고 로그인
     @Test
     @Transactional
     void CreateUserAndLogin() throws Exception {
@@ -175,7 +147,7 @@ class JwtAuthTest {
         return requestDto;
     }
 
-//Refresh*************************//
+//Refresh*******************************//
     @Test
     @DisplayName("RefreshToken 발급 확인")
     void getRefreshToken() throws Exception {
@@ -216,7 +188,7 @@ class JwtAuthTest {
 
         // when & then
         //만료된 AccessToken으로 요청시 401반환
-        mockMvc.perform(get("/requestWithToken")
+        mockMvc.perform(get("/api/users/me")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(AuthErrorCode.EXPIRED_TOKEN.getCode()))
@@ -235,14 +207,8 @@ class JwtAuthTest {
         String newAccessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
 
         //새로 발급받은 AccessToken으로 요청
-        mockMvc.perform(get("/api/requestWithToken")
+        mockMvc.perform(get("/api/users/me")
                         .header("Authorization", "Bearer " + newAccessToken))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("로그아웃")
-    void logout() {
-
     }
 }
