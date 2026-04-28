@@ -57,9 +57,9 @@ class UserControllerTest {
     //*********************//
     private Long testUserId;
     private String testUserToken;
-    private String testUserEmail = "Init@email.com";
-    private String testUserPassword = "init4567";
-    private String testUserName = "InitTestName";
+    private final String testUserEmail = "Init@email.com";
+    private final String testUserPassword = "init4567";
+    private final String testUserName = "InitTestName";
 
     @BeforeEach
     void Init() {

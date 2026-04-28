@@ -8,7 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import work.trade.auth.dto.request.LoginRequestDto;
 import work.trade.auth.dto.response.AccessTokenResponseDto;
 import work.trade.auth.dto.response.LoginResponseDto;
@@ -26,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AccessTokenResponseDto> login(@RequestBody @Valid LoginRequestDto requestDto) {
-        log.info("POST /auth/login");
+        log.info("POST /api/auth/login start controller");
 
         LoginResponseDto response = authService.login(requestDto);
 
@@ -51,7 +54,7 @@ public class AuthController {
     //RefreshToken으로 AccessToken 갱신
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request) {
-        log.info("POST /auth/refresh");
+        log.info("POST /api/auth/refresh start controller");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
 
@@ -77,7 +80,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
-        log.info("POST /auth/logout");
+        log.info("POST /api/auth/logout start controller");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
 
@@ -116,14 +119,6 @@ public class AuthController {
 
         throw new RuntimeException("RefreshToken 쿠키를 찾을 수 없습니다");
     }
-
-//*************************************//
-
-    @GetMapping("/cicdTest")
-    public String cicdTest() {
-        return "CICD 배포 성공";
-    }
-
 }
 
 

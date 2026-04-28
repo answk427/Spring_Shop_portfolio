@@ -61,7 +61,7 @@ class UserServiceImplTest {
     private static final String testPassword = "testPasswordHash";
     private Long testUserId = -1L;
 
-    private String testApCode = "LOCAL";
+    private final String testApCode = "LOCAL";
     private String testApName = null;
     private String testApDesc = null;
 

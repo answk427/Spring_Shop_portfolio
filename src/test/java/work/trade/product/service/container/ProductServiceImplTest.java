@@ -29,7 +29,6 @@ import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -61,8 +60,8 @@ class ProductServiceImplTest {
 
     private Long testUserId = 0L;
     private Long testUserId1 = 0L;
-    private Long testCategoryId = 1L;
-    private Long testCategoryId1 = 2L;
+    private final Long testCategoryId = 1L;
+    private final Long testCategoryId1 = 2L;
 
     @Container
     @ServiceConnection
