@@ -1,23 +1,16 @@
 package work.trade.product.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductSummaryDto {
-    private Long id;
-    private String name;
-    private BigDecimal price;
-    private Integer stock;
-    private String categoryName;
-    private String sellerName;
-    private LocalDateTime createdAt;
+public record ProductSummaryDto(
+        Long id,
+        String name,
+        BigDecimal price,
+        Integer stock,
+        String categoryName,
+        String sellerName,
+        LocalDateTime createdAt
+) {
+
 }

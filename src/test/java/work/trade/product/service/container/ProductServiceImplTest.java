@@ -131,7 +131,7 @@ class ProductServiceImplTest {
 
         //then
         //-----------------Repository로 얻은 Entity 검증
-        Optional<Product> productByRepoOpt = productRepository.findById(product.getId());
+        Optional<Product> productByRepoOpt = productRepository.findById(product.id());
         assertThat(productByRepoOpt.isPresent()).isTrue();
         Product productByRepo = productByRepoOpt.get();
 
@@ -149,33 +149,33 @@ class ProductServiceImplTest {
         verifyCategory(productByRepo.getCategory());
 
         //-----------------Service로 얻은 Dto 검증
-        ProductDto productDto = productService.findProduct(product.getId());
+        ProductDto productDto = productService.findProduct(product.id());
 
-        assertThat(productDto.getId()).isEqualTo(productByRepo.getId());
-        assertThat(productDto.getCreatedAt()).isEqualTo(productByRepo.getCreatedAt());
-        assertThat(productDto.getUpdatedAt()).isEqualTo(productByRepo.getUpdatedAt());
-        assertThat(productDto.getName()).isEqualTo(productByRepo.getName());
-        assertThat(productDto.getPrice()).isEqualTo(productByRepo.getPrice());
-        assertThat(productDto.getStock()).isEqualTo(productByRepo.getStock());
-        assertThat(productDto.getDescription()).isEqualTo(productByRepo.getDescription());
+        assertThat(productDto.id()).isEqualTo(productByRepo.getId());
+        assertThat(productDto.createdAt()).isEqualTo(productByRepo.getCreatedAt());
+        assertThat(productDto.updatedAt()).isEqualTo(productByRepo.getUpdatedAt());
+        assertThat(productDto.name()).isEqualTo(productByRepo.getName());
+        assertThat(productDto.price()).isEqualTo(productByRepo.getPrice());
+        assertThat(productDto.stock()).isEqualTo(productByRepo.getStock());
+        assertThat(productDto.description()).isEqualTo(productByRepo.getDescription());
 
         //Dto Seller 검증
-        assertThat(productDto.getSeller()).isNotNull();
-        SellerDto dtoSeller = productDto.getSeller();
+        assertThat(productDto.seller()).isNotNull();
+        SellerDto dtoSeller = productDto.seller();
         assertThat(dtoSeller.getId()).isEqualTo(productByRepo.getSeller().getId());
         assertThat(dtoSeller.getEmail()).isEqualTo(productByRepo.getSeller().getEmail());
         assertThat(dtoSeller.getName()).isEqualTo(productByRepo.getSeller().getName());
 
         //Dto Category 검증
-        assertThat(productDto.getCategory()).isNotNull();
-        CategoryDto dtoCategory = productDto.getCategory();
-        assertThat(dtoCategory.getId()).isEqualTo(productByRepo.getCategory().getId());
-        assertThat(dtoCategory.getName()).isEqualTo(productByRepo.getCategory().getName());
+        assertThat(productDto.category()).isNotNull();
+        CategoryDto dtoCategory = productDto.category();
+        assertThat(dtoCategory.id()).isEqualTo(productByRepo.getCategory().getId());
+        assertThat(dtoCategory.name()).isEqualTo(productByRepo.getCategory().getName());
 
         Category parent = productByRepo.getCategory().getParent();
         if (parent != null) {
-            assertThat(dtoCategory.getParentId()).isEqualTo(parent.getId());
-            assertThat(dtoCategory.getParentName()).isEqualTo(parent.getName());
+            assertThat(dtoCategory.parentId()).isEqualTo(parent.getId());
+            assertThat(dtoCategory.parentName()).isEqualTo(parent.getName());
         }
     }
 
@@ -193,35 +193,35 @@ class ProductServiceImplTest {
         em.clear();
         //when
         System.out.println("================= [로직 시작] =================");
-        ProductDto productDto = productService.findProduct(product.getId());
+        ProductDto productDto = productService.findProduct(product.id());
         System.out.println("================= [로직 종료] =================");
 
         //then
         //-----------------Service로 얻은 Dto 검증
-        assertThat(productDto.getId()).isEqualTo(product.getId());
-        assertThat(productDto.getName()).isEqualTo(productName);
-        assertThat(productDto.getPrice()).isEqualByComparingTo(productPrice);
-        assertThat(productDto.getStock()).isEqualTo(productStock);
-        assertThat(productDto.getDescription()).isEqualTo(productDescription);
+        assertThat(productDto.id()).isEqualTo(product.id());
+        assertThat(productDto.name()).isEqualTo(productName);
+        assertThat(productDto.price()).isEqualByComparingTo(productPrice);
+        assertThat(productDto.stock()).isEqualTo(productStock);
+        assertThat(productDto.description()).isEqualTo(productDescription);
 
-        assertThat(productDto.getCreatedAt()).isNotNull();
-        assertThat(productDto.getUpdatedAt()).isNotNull();
+        assertThat(productDto.createdAt()).isNotNull();
+        assertThat(productDto.updatedAt()).isNotNull();
 
         //Dto Seller 검증
-        assertThat(productDto.getSeller()).isNotNull();
-        SellerDto dtoSeller = productDto.getSeller();
-        assertThat(dtoSeller.getId()).isEqualTo(product.getSeller().getId());
-        assertThat(dtoSeller.getEmail()).isEqualTo(product.getSeller().getEmail());
-        assertThat(dtoSeller.getName()).isEqualTo(product.getSeller().getName());
+        assertThat(productDto.seller()).isNotNull();
+        SellerDto dtoSeller = productDto.seller();
+        assertThat(dtoSeller.getId()).isEqualTo(product.seller().getId());
+        assertThat(dtoSeller.getEmail()).isEqualTo(product.seller().getEmail());
+        assertThat(dtoSeller.getName()).isEqualTo(product.seller().getName());
 
         //Dto Category 검증
-        assertThat(productDto.getCategory()).isNotNull();
-        CategoryDto dtoCategory = productDto.getCategory();
-        assertThat(dtoCategory.getId()).isEqualTo(product.getCategory().getId());
-        assertThat(dtoCategory.getName()).isEqualTo(product.getCategory().getName());
+        assertThat(productDto.category()).isNotNull();
+        CategoryDto dtoCategory = productDto.category();
+        assertThat(dtoCategory.id()).isEqualTo(product.category().id());
+        assertThat(dtoCategory.name()).isEqualTo(product.category().name());
 
-        assertThat(dtoCategory.getParentId()).isEqualTo(productDto.getCategory().getParentId());
-        assertThat(dtoCategory.getParentName()).isEqualTo(productDto.getCategory().getParentName());
+        assertThat(dtoCategory.parentId()).isEqualTo(productDto.category().parentId());
+        assertThat(dtoCategory.parentName()).isEqualTo(productDto.category().parentName());
 
         //존재하지 않는 ID 조회 테스트
         assertThatThrownBy(()->productService.findProduct(99999L));
@@ -236,7 +236,7 @@ class ProductServiceImplTest {
         final int originalStock = 1111;
         final String originalDesc = "Original Description";
         ProductDto createdProduct = createTestProduct(originalName, originalPrice, originalStock, testCategoryId, testUserId, originalDesc);
-        ProductDto product = productService.findProduct(createdProduct.getId());
+        ProductDto product = productService.findProduct(createdProduct.id());
 
         final String updateName = "Updated Name";
         final BigDecimal updatePrice = BigDecimal.valueOf(33000);
@@ -253,7 +253,7 @@ class ProductServiceImplTest {
         em.clear();
         //when
         System.out.println("================= [로직 시작] =================");
-        ProductDto updatedDto = productService.updateProduct(updateDto, product.getId(), testUserId);
+        ProductDto updatedDto = productService.updateProduct(updateDto, product.id(), testUserId);
         System.out.println("================= [로직 종료] =================");
 
         em.flush();
@@ -261,18 +261,18 @@ class ProductServiceImplTest {
 
         //then
         //DTO 검증
-        assertThat(updatedDto.getId()).isEqualTo(product.getId());
-        assertThat(updatedDto.getName()).isEqualTo(updateName);
-        assertThat(updatedDto.getPrice()).isEqualByComparingTo(updatePrice);
-        assertThat(updatedDto.getStock()).isEqualTo(updateStock);
-        assertThat(updatedDto.getDescription()).isEqualTo(updateDesc);
+        assertThat(updatedDto.id()).isEqualTo(product.id());
+        assertThat(updatedDto.name()).isEqualTo(updateName);
+        assertThat(updatedDto.price()).isEqualByComparingTo(updatePrice);
+        assertThat(updatedDto.stock()).isEqualTo(updateStock);
+        assertThat(updatedDto.description()).isEqualTo(updateDesc);
         // 업데이트 시간 검증: 업데이트 이전 시간보다 이후여야 함
-        assertThat(updatedDto.getUpdatedAt()).isAfterOrEqualTo(product.getUpdatedAt());
+        assertThat(updatedDto.updatedAt()).isAfterOrEqualTo(product.updatedAt());
         // 생성 시간은 변경되지 않아야 함
-        assertThat(updatedDto.getCreatedAt()).isCloseTo(product.getCreatedAt(), within(1, ChronoUnit.MILLIS));
+        assertThat(updatedDto.createdAt()).isCloseTo(product.createdAt(), within(1, ChronoUnit.MILLIS));
 
         //Repository로 조회한 Entity 검증 (DB 반영 확인)
-        Optional<Product> productByRepoOpt = productRepository.findById(product.getId());
+        Optional<Product> productByRepoOpt = productRepository.findById(product.id());
         assertThat(productByRepoOpt.isPresent()).isTrue();
         Product productByRepo = productByRepoOpt.get();
 
@@ -298,11 +298,11 @@ class ProductServiceImplTest {
         em.clear();
         //when
         System.out.println("================= [로직 시작] =================");
-        productService.deleteById(product.getId(), testUserId);
+        productService.deleteById(product.id(), testUserId);
         System.out.println("================= [로직 종료] =================");
 
         //then
-        assertThatThrownBy(()->productService.findProduct(product.getId()));
+        assertThatThrownBy(()->productService.findProduct(product.id()));
     }
 
     @Test

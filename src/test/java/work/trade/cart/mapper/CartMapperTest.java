@@ -95,11 +95,11 @@ class CartMapperTest {
         assertThat(dto.quantity()).isEqualTo(cart.getQuantity());
 
         assertThat(dto.product()).isNotNull();
-        assertThat(dto.product().getId()).isEqualTo(product.getId());
-        assertThat(dto.product().getSellerName()).isEqualTo(product.getSeller().getName());
-        assertThat(dto.product().getCategoryName()).isEqualTo(product.getCategory().getName());
-        assertThat(dto.product().getPrice()).isEqualTo(product.getPrice());
-        assertThat(dto.product().getName()).isEqualTo(product.getName());
-        assertThat(dto.product().getStock()).isEqualTo(product.getStock());
+        assertThat(dto.product().id()).isEqualTo(product.getId());
+        assertThat(dto.product().sellerName()).isEqualTo(product.getSeller().getName());
+        assertThat(dto.product().categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(dto.product().price()).isEqualTo(product.getPrice());
+        assertThat(dto.product().name()).isEqualTo(product.getName());
+        assertThat(dto.product().stock()).isEqualTo(product.getStock());
     }
 }

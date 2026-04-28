@@ -111,11 +111,11 @@ class OrderMapperTest {
     }
 
     void checkProduct(ProductSummaryDto productDto, Product product) {
-        assertThat(productDto.getId()).isEqualTo(product.getId());
-        assertThat(productDto.getStock()).isEqualTo(product.getStock());
-        assertThat(productDto.getName()).isEqualTo(product.getName());
-        assertThat(productDto.getPrice()).isEqualTo(product.getPrice());
-        assertThat(productDto.getSellerName()).isEqualTo(product.getSeller().getName());
+        assertThat(productDto.id()).isEqualTo(product.getId());
+        assertThat(productDto.stock()).isEqualTo(product.getStock());
+        assertThat(productDto.name()).isEqualTo(product.getName());
+        assertThat(productDto.price()).isEqualTo(product.getPrice());
+        assertThat(productDto.sellerName()).isEqualTo(product.getSeller().getName());
     }
 
     void checkStatus(OrderStatus status, OrderStatusDto statusDto) {

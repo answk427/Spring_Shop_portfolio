@@ -154,7 +154,7 @@ class productControllerTest {
         ProductDto product = productService.createProduct(dto, testUserId);
 
         //when, then
-        mockMvc.perform(get("/api/products/" + product.getId().toString()))
+        mockMvc.perform(get("/api/products/" + product.id().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("testProductName"))
                 .andExpect(jsonPath("$.price").value(111))
@@ -172,15 +172,15 @@ class productControllerTest {
         updateDto.setDescription("updateDescription");
 
         //when, then
-        mockMvc.perform(put("/api/products/" + product.getId().toString())
+        mockMvc.perform(put("/api/products/" + product.id().toString())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("updateName"))
                 .andExpect(jsonPath("$.description").value("updateDescription"))
-                .andExpect(jsonPath("$.price").value(product.getPrice().doubleValue()))
-                .andExpect(jsonPath("$.stock").value(product.getStock()))
+                .andExpect(jsonPath("$.price").value(product.price().doubleValue()))
+                .andExpect(jsonPath("$.stock").value(product.stock()))
                 .andExpect(jsonPath("$.seller.id").value(testUserId));
     }
 
@@ -196,12 +196,12 @@ class productControllerTest {
         updateDto.setDescription("updateDescription");
 
         //when, then
-        mockMvc.perform(delete("/api/products/" + product.getId().toString())
+        mockMvc.perform(delete("/api/products/" + product.id().toString())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        Assertions.assertThatThrownBy(() -> productService.findProduct(product.getId()));
+        Assertions.assertThatThrownBy(() -> productService.findProduct(product.id()));
 
     }
 

@@ -73,7 +73,7 @@ class CartServiceImplTest {
         productCreateDto.setStock(1234566);
         productCreateDto.setCategoryId(category.getId());
         ProductDto product = productService.createProduct(productCreateDto, userId);
-        productId1 = product.getId();
+        productId1 = product.id();
 
         ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto();
         productCreateDto2.setName("product2");
@@ -81,7 +81,7 @@ class CartServiceImplTest {
         productCreateDto2.setStock(1234566);
         productCreateDto2.setCategoryId(category.getId());
         ProductDto product2 = productService.createProduct(productCreateDto2, userId);
-        productId2 = product2.getId();
+        productId2 = product2.id();
     }
 
 //******************************//
@@ -105,14 +105,14 @@ class CartServiceImplTest {
         Long cartId = cartDto.id();
 
         //then
-        assertThat(cartDto.product().getId()).isEqualTo(productId1);
+        assertThat(cartDto.product().id()).isEqualTo(productId1);
         assertThat(cartDto.quantity()).isEqualTo(cartAddRequestDto.getQuantity());
 
         //when(기존 상품에 수량 추가)
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto, userId);
 
         //then
-        assertThat(cartDto2.product().getId()).isEqualTo(productId1);
+        assertThat(cartDto2.product().id()).isEqualTo(productId1);
         assertThat(cartDto2.quantity()).isEqualTo(cartAddRequestDto.getQuantity() * 2);
 
         //[로직시작] [로직종료] 사이에 SQL로그 확인
@@ -152,11 +152,11 @@ class CartServiceImplTest {
         assertThat(myCart.size()).isEqualTo(2);
 
         assertThat(myCartDto1.id()).isEqualTo(cartDto1.id());
-        assertThat(myCartDto1.product().getId()).isEqualTo(cartDto1.product().getId());
+        assertThat(myCartDto1.product().id()).isEqualTo(cartDto1.product().id());
         assertThat(myCartDto1.quantity()).isEqualTo(cartDto1.quantity());
 
         assertThat(myCartDto2.id()).isEqualTo(cartDto2.id());
-        assertThat(myCartDto2.product().getId()).isEqualTo(cartDto2.product().getId());
+        assertThat(myCartDto2.product().id()).isEqualTo(cartDto2.product().id());
         assertThat(myCartDto2.quantity()).isEqualTo(cartDto2.quantity());
 
         //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
@@ -260,10 +260,10 @@ class CartServiceImplTest {
         //then
         assertThat(cartItems.size()).isEqualTo(2);
 
-        assertThat(cartItems.get(0).productId()).isEqualTo(cartDto1.product().getId());
+        assertThat(cartItems.get(0).productId()).isEqualTo(cartDto1.product().id());
         assertThat(cartItems.get(0).quantity()).isEqualTo(cartDto1.quantity());
 
-        assertThat(cartItems.get(1).productId()).isEqualTo(cartDto2.product().getId());
+        assertThat(cartItems.get(1).productId()).isEqualTo(cartDto2.product().id());
         assertThat(cartItems.get(1).quantity()).isEqualTo(cartDto2.quantity());
 
         //[로직시작] [로직종료] 사이에 select SQL로그 1번 확인

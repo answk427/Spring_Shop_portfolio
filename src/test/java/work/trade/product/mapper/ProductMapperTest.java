@@ -118,18 +118,18 @@ class ProductMapperTest {
         ProductDto dto = mapper.toDto(product);
 
         //then
-        assertThat(dto.getId()).isEqualTo(product.getId());
-        assertThat(dto.getName()).isEqualTo(product.getName());
-        assertThat(dto.getDescription()).isEqualTo(product.getDescription());
-        assertThat(dto.getPrice()).isEqualTo(product.getPrice());
-        assertThat(dto.getStock()).isEqualTo(product.getStock());
-        assertThat(dto.getCreatedAt()).isEqualTo(product.getCreatedAt());
-        assertThat(dto.getUpdatedAt()).isEqualTo(product.getUpdatedAt());
+        assertThat(dto.id()).isEqualTo(product.getId());
+        assertThat(dto.name()).isEqualTo(product.getName());
+        assertThat(dto.description()).isEqualTo(product.getDescription());
+        assertThat(dto.price()).isEqualTo(product.getPrice());
+        assertThat(dto.stock()).isEqualTo(product.getStock());
+        assertThat(dto.createdAt()).isEqualTo(product.getCreatedAt());
+        assertThat(dto.updatedAt()).isEqualTo(product.getUpdatedAt());
 
 
-        assertThat(dto.getCategory()).isNotNull();
-        assertThat(dto.getSeller()).isNotNull();
-        assertThat(dto.getSeller().getId()).isEqualTo(product.getSeller().getId());
+        assertThat(dto.category()).isNotNull();
+        assertThat(dto.seller()).isNotNull();
+        assertThat(dto.seller().getId()).isEqualTo(product.getSeller().getId());
     }
 
     @Test
@@ -141,13 +141,13 @@ class ProductMapperTest {
         ProductSummaryDto dto = mapper.toSummaryDto(product);
 
         //then
-        assertThat(dto.getId()).isEqualTo(product.getId());
-        assertThat(dto.getName()).isEqualTo(product.getName());
-        assertThat(dto.getPrice()).isEqualTo(product.getPrice());
-        assertThat(dto.getStock()).isEqualTo(product.getStock());
-        assertThat(dto.getCreatedAt()).isEqualTo(product.getCreatedAt());
+        assertThat(dto.id()).isEqualTo(product.getId());
+        assertThat(dto.name()).isEqualTo(product.getName());
+        assertThat(dto.price()).isEqualTo(product.getPrice());
+        assertThat(dto.stock()).isEqualTo(product.getStock());
+        assertThat(dto.createdAt()).isEqualTo(product.getCreatedAt());
 
-        assertThat(dto.getCategoryName()).isEqualTo(product.getCategory().getName());
-        assertThat(dto.getSellerName()).isEqualTo(product.getSeller().getName());
+        assertThat(dto.categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(dto.sellerName()).isEqualTo(product.getSeller().getName());
     }
 }

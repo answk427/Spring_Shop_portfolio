@@ -105,7 +105,7 @@ class CartControllerTest {
         productCreateDto.setStock(1234566);
         productCreateDto.setCategoryId(category.getId());
         ProductDto product = productService.createProduct(productCreateDto, userId);
-        productId1 = product.getId();
+        productId1 = product.id();
 
         ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto();
         productCreateDto2.setName("product2");
@@ -113,7 +113,7 @@ class CartControllerTest {
         productCreateDto2.setStock(1234566);
         productCreateDto2.setCategoryId(category.getId());
         ProductDto product2 = productService.createProduct(productCreateDto2, userId);
-        productId2 = product2.getId();
+        productId2 = product2.id();
 
         //테스트용 토큰 생성
         testUserToken = jwtTokenUtil.createAccessToken(userId.toString(), List.of(Role.USER));
@@ -152,12 +152,12 @@ class CartControllerTest {
                 .andExpect(status().isOk());
 
         for (int i = 0; i < 2; ++i) {
-            result.andExpect(jsonPath("$[%d].product.id", i).value(products.get(i).getId()))
-                    .andExpect(jsonPath("$[%d].product.name", i).value(products.get(i).getName()))
-                    .andExpect(jsonPath("$[%d].product.price", i).value(products.get(i).getPrice().doubleValue()))
-                    .andExpect(jsonPath("$[%d].product.stock", i).value(products.get(i).getStock()))
-                    .andExpect(jsonPath("$[%d].product.sellerName", i).value(products.get(i).getSellerName()))
-                    .andExpect(jsonPath("$[%d].product.categoryName", i).value(products.get(i).getCategoryName()))
+            result.andExpect(jsonPath("$[%d].product.id", i).value(products.get(i).id()))
+                    .andExpect(jsonPath("$[%d].product.name", i).value(products.get(i).name()))
+                    .andExpect(jsonPath("$[%d].product.price", i).value(products.get(i).price().doubleValue()))
+                    .andExpect(jsonPath("$[%d].product.stock", i).value(products.get(i).stock()))
+                    .andExpect(jsonPath("$[%d].product.sellerName", i).value(products.get(i).sellerName()))
+                    .andExpect(jsonPath("$[%d].product.categoryName", i).value(products.get(i).categoryName()))
                     .andExpect(jsonPath("$[%d].id", i).value(carts.get(i).id()))
                     .andExpect(jsonPath("$[%d].quantity", i).value(carts.get(i).quantity()));
         }

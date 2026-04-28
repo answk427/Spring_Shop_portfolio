@@ -154,8 +154,8 @@ class OrderServiceTest {
 
         ProductDto product1 = productService.createProduct(productCreateRequestDto1, sellerDto.getId());
         ProductDto product2 = productService.createProduct(productCreateRequestDto2, sellerDto.getId());
-        productId1 = product1.getId();
-        productId2 = product2.getId();
+        productId1 = product1.id();
+        productId2 = product2.id();
     }
 
     @Transactional
@@ -177,19 +177,19 @@ class OrderServiceTest {
     }
 
     void checkProduct(ProductSummaryDto productDto, ProductDto product) {
-        assertThat(productDto.getId()).isEqualTo(product.getId());
-        assertThat(productDto.getStock()).isEqualTo(product.getStock());
-        assertThat(productDto.getName()).isEqualTo(product.getName());
-        assertThat(productDto.getPrice()).isEqualTo(product.getPrice());
-        assertThat(productDto.getSellerName()).isEqualTo(product.getSeller().getName());
+        assertThat(productDto.id()).isEqualTo(product.id());
+        assertThat(productDto.stock()).isEqualTo(product.stock());
+        assertThat(productDto.name()).isEqualTo(product.name());
+        assertThat(productDto.price()).isEqualTo(product.price());
+        assertThat(productDto.sellerName()).isEqualTo(product.seller().getName());
     }
 
     void checkProduct(ProductSummaryDto productDto1, ProductSummaryDto productDto2) {
-        assertThat(productDto1.getId()).isEqualTo(productDto2.getId());
-        assertThat(productDto1.getStock()).isEqualTo(productDto2.getStock());
-        assertThat(productDto1.getName()).isEqualTo(productDto2.getName());
-        assertThat(productDto1.getPrice()).isEqualByComparingTo(productDto2.getPrice());
-        assertThat(productDto1.getSellerName()).isEqualTo(productDto2.getSellerName());
+        assertThat(productDto1.id()).isEqualTo(productDto2.id());
+        assertThat(productDto1.stock()).isEqualTo(productDto2.stock());
+        assertThat(productDto1.name()).isEqualTo(productDto2.name());
+        assertThat(productDto1.price()).isEqualByComparingTo(productDto2.price());
+        assertThat(productDto1.sellerName()).isEqualTo(productDto2.sellerName());
     }
 
     void checkOrder(OrderDto orderDto1, OrderDto orderDto2) {
@@ -266,8 +266,8 @@ class OrderServiceTest {
         List<OrderItemDto> orderItems = orderDto.orderItems();
 
         //주문 생성 이후 product
-        ProductDto product1 = productService.findProduct(oldProduct1.getId());
-        ProductDto product2 = productService.findProduct(oldProduct2.getId());
+        ProductDto product1 = productService.findProduct(oldProduct1.id());
+        ProductDto product2 = productService.findProduct(oldProduct2.id());
         List<ProductDto> products = List.of(product1, product2);
 
         //then
@@ -278,16 +278,16 @@ class OrderServiceTest {
             ProductDto productDto = products.get(i);
 
             //줄어든 재고 검증
-            assertThat(productDto.getStock()).isEqualTo(oldProductDto.getStock() - orderItemDto.getQuantity());
+            assertThat(productDto.stock()).isEqualTo(oldProductDto.stock() - orderItemDto.getQuantity());
 
             //주문 상품 금액 검증
-            BigDecimal sum = oldProductDto.getPrice().multiply(new BigDecimal(quantities.get(i)));
+            BigDecimal sum = oldProductDto.price().multiply(new BigDecimal(quantities.get(i)));
             assertThat(orderItemDto.getSubtotalPrice()).isEqualByComparingTo(sum);
             totalSum = totalSum.add(sum);
 
             assertThat(orderItemDto.getId()).isNotNull();
             assertThat(orderItemDto.getQuantity()).isEqualTo(quantities.get(i));
-            assertThat(orderItemDto.getUnitPrice()).isEqualByComparingTo(oldProductDto.getPrice());
+            assertThat(orderItemDto.getUnitPrice()).isEqualByComparingTo(oldProductDto.price());
 
             checkProduct(orderItemDto.getProduct(), productDto);
         }
@@ -498,7 +498,7 @@ class OrderServiceTest {
         productCreateRequestDto.setDescription("concurrencyProductDesc");
         productCreateRequestDto.setName("concurrencyProductName");
 
-        Long productId = productService.createProduct(productCreateRequestDto, sellerId).getId();
+        Long productId = productService.createProduct(productCreateRequestDto, sellerId).id();
 
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
@@ -539,7 +539,7 @@ class OrderServiceTest {
         log.info("=== 테스트 결과 ===");
         log.info("성공 주문 수: {}", successCount.get());
         log.info("실패 주문 수: {}", failCount.get());
-        log.info("최종 재고: {}", product.getStock());
+        log.info("최종 재고: {}", product.stock());
         log.info("모든 스레드 완료: {}", completed);
 
         assertThat(successCount.get())
@@ -550,7 +550,7 @@ class OrderServiceTest {
                 .as("90명이 재고 부족으로 실패해야 함")
                 .isEqualTo(90);
 
-        assertThat(product.getStock())
+        assertThat(product.stock())
                 .as("최종 재고는 0이어야 함")
                 .isEqualTo(0);
     }
