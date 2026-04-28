@@ -127,8 +127,7 @@ class OrderControllerTest {
         // given
         Long orderId = 10L;
         String targetStatus = OrderStatusConstant.CONFIRMED;
-        OrderStatusUpdateRequestDto requestDto = new OrderStatusUpdateRequestDto();
-        requestDto.setStatus(targetStatus);
+        OrderStatusUpdateRequestDto requestDto = new OrderStatusUpdateRequestDto(targetStatus);
 
         OrderStatusDto orderStatusDto = new OrderStatusDto(targetStatus, "name", "desc");
         OrderDto responseDto = createOrderDto(orderStatusDto);
