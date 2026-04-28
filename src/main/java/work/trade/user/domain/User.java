@@ -1,7 +1,10 @@
 package work.trade.user.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.generator.EventType;
 import org.springframework.util.StringUtils;
 import work.trade.auth.role.Role;
@@ -16,7 +19,7 @@ import java.time.LocalDateTime;
 public class User {
 
     @Builder
-    public User(String email, String passwordHash, AuthProvider authProvider, String name, Role role) {
+    private User(String email, String passwordHash, AuthProvider authProvider, String name, Role role) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.authProvider = authProvider;

@@ -1,6 +1,9 @@
 package work.trade.order.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class OrderStatus {
 
     @Builder
-    public OrderStatus(String code, String name, String description) {
+    private OrderStatus(String code, String name, String description) {
         this.code = code;
         this.name = name;
         this.description = description;

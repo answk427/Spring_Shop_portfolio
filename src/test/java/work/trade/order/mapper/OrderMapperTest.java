@@ -40,7 +40,13 @@ class OrderMapperTest {
 //*********************************//
 
     User getUser(String email, String password, String name) {
-        return new User(email, password, null, name, Role.USER);
+        return User.builder()
+                .email(email)
+                .passwordHash(password)
+                .authProvider(null)
+                .name(name)
+                .role(Role.USER)
+                .build();
     }
 
     Product getProduct(User seller, String name, String desc, BigDecimal price, Integer stock) {

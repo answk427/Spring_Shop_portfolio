@@ -32,7 +32,13 @@ class CartMapperTest {
 //*******************************//
 
     User getUser() {
-        return new User("test@naver.com", "asdf", null, "name", Role.USER);
+        return User.builder()
+                .email("test@naver.com")
+                .passwordHash("asdf")
+                .authProvider(null)
+                .name("name")
+                .role(Role.USER)
+                .build();
     }
 
     Product getProduct(User seller) {
