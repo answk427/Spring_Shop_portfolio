@@ -114,4 +114,9 @@ public class CartServiceImpl implements CartService{
     public void deleteAllCartItems(Long userId) {
         cartRepository.deleteAllByUser_Id(userId);
     }
+
+    @Override
+    public void deleteAllCartItemsInBatch(Long userId) {
+        cartRepository.deleteAllByUserIdInBatch(userId);
+    }
 }
