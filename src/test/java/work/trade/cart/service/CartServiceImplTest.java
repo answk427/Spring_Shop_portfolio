@@ -62,7 +62,7 @@ class CartServiceImplTest {
         userCreateDto.setPassword("12341414");
         userCreateDto.setEmail("test@naver.com");
         UserDto userDto = userService.createUser(userCreateDto);
-        userId = userDto.getId();
+        userId = userDto.id();
 
         Category testCategory = Category.builder().name("testCategory").build();
         Category category = categoryRepository.save(testCategory);

@@ -129,7 +129,7 @@ class ProductMapperTest {
 
         assertThat(dto.category()).isNotNull();
         assertThat(dto.seller()).isNotNull();
-        assertThat(dto.seller().getId()).isEqualTo(product.getSeller().getId());
+        assertThat(dto.seller().id()).isEqualTo(product.getSeller().getId());
     }
 
     @Test

@@ -68,7 +68,7 @@ class UserServiceImplTest {
     @BeforeEach
     @Transactional
     void InitData() {
-        testUserId = createTestUser(testUserName, testUserEmail, testPassword).getId();
+        testUserId = createTestUser(testUserName, testUserEmail, testPassword).id();
 
         AuthProvider authProvider = apRepo.getReferenceById(testApCode);
         testApName = authProvider.getName();
@@ -82,18 +82,18 @@ class UserServiceImplTest {
     }
 
     private void checkAuthProvider(AuthProviderDto findAuthProvider) {
-        assertThat(findAuthProvider.getCode()).isEqualTo(testApCode);
-        assertThat(findAuthProvider.getName()).isEqualTo(testApName);
-        assertThat(findAuthProvider.getDescription()).isEqualTo(testApDesc);
+        assertThat(findAuthProvider.code()).isEqualTo(testApCode);
+        assertThat(findAuthProvider.name()).isEqualTo(testApName);
+        assertThat(findAuthProvider.description()).isEqualTo(testApDesc);
     }
 
     private void checkUserDto(UserDto userDto, Long userId, String userName, String userEmail) {
         assertThat(userDto).isNotNull();
-        assertThat(userDto.getId()).isEqualTo(userId);
-        assertThat(userDto.getName()).isEqualTo(userName);
-        assertThat(userDto.getEmail()).isEqualTo(userEmail);
-        assertThat(userDto.getCreatedAt()).isNotNull();
-        assertThat(userDto.getUpdatedAt()).isNotNull();
+        assertThat(userDto.id()).isEqualTo(userId);
+        assertThat(userDto.name()).isEqualTo(userName);
+        assertThat(userDto.email()).isEqualTo(userEmail);
+        assertThat(userDto.createdAt()).isNotNull();
+        assertThat(userDto.updatedAt()).isNotNull();
     }
 //------------------------------------------------------------------//
 
@@ -112,11 +112,11 @@ class UserServiceImplTest {
 
         //then
         //Repository에서 얻은 Entity 검증
-        Optional<User> findUserOpt = userRepository.findById(createUserDto.getId());
+        Optional<User> findUserOpt = userRepository.findById(createUserDto.id());
         assertThat(findUserOpt.isPresent()).isTrue();
         User user = findUserOpt.get();
 
-        assertThat(user.getId()).isEqualTo(createUserDto.getId());
+        assertThat(user.getId()).isEqualTo(createUserDto.id());
         assertThat(user.getName()).isEqualTo(userName);
         assertThat(user.getEmail()).isEqualTo(userEmail);
         assertThat(passwordEncoder.matches(userPassword, user.getPasswordHash())).isTrue();
@@ -147,8 +147,8 @@ class UserServiceImplTest {
         //then
         checkUserDto(userDto, testUserId, testUserName, testUserEmail);
 
-        if (userDto.getAuthProvider() != null) {
-            AuthProviderDto findAuthProvider = userDto.getAuthProvider();
+        if (userDto.authProvider() != null) {
+            AuthProviderDto findAuthProvider = userDto.authProvider();
             checkAuthProvider(findAuthProvider);
         }
 
@@ -234,8 +234,8 @@ class UserServiceImplTest {
         //then
         checkUserDto(userDto, testUserId, testUserName, testUserEmail);
 
-        if (userDto.getAuthProvider() != null) {
-            AuthProviderDto findAuthProvider = userDto.getAuthProvider();
+        if (userDto.authProvider() != null) {
+            AuthProviderDto findAuthProvider = userDto.authProvider();
             checkAuthProvider(findAuthProvider);
         }
 

@@ -82,7 +82,7 @@ class productControllerTest {
         dto.setEmail("testEmail");
         dto.setPassword("testPassword");
         UserDto testSeller = userService.createUser(dto);
-        testUserId = testSeller.getId();
+        testUserId = testSeller.id();
         //테스트용 토큰 생성
         testUserToken = jwtTokenUtil.createAccessToken(testUserId.toString(), List.of(Role.USER));
 
@@ -289,8 +289,8 @@ class productControllerTest {
         otherUserDto.setPassword("password123");
         otherUserDto.setName("다른유저");
         UserDto otherUser = userService.createUser(otherUserDto);
-        String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.getId().toString(), List.of(Role.USER));
-        productService.createProduct(getProductCreateRequestDto("다른유저 상품", new BigDecimal("3000")), otherUser.getId());
+        String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.id().toString(), List.of(Role.USER));
+        productService.createProduct(getProductCreateRequestDto("다른유저 상품", new BigDecimal("3000")), otherUser.id());
 
         // when, then
         // 토큰 없이 → 401

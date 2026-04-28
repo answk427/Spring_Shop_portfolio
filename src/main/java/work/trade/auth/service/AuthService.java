@@ -32,13 +32,13 @@ public class AuthService {
         //로그인 요청시 ID = email
         UserDto user = userService.authenticate(requestDto.getId(), requestDto.getPassword());
 
-        String accessToken = jwtTokenUtil.createAccessToken(user.getId().toString(), List.of(user.getRole()));
-        String refreshToken = jwtTokenUtil.createRefreshToken(user.getId().toString());
+        String accessToken = jwtTokenUtil.createAccessToken(user.id().toString(), List.of(user.role()));
+        String refreshToken = jwtTokenUtil.createRefreshToken(user.id().toString());
 
         //RefreshToken Redis에 저장
-        jwtTokenUtil.saveRefreshTokenToRedis(refreshToken, user.getId().toString());
+        jwtTokenUtil.saveRefreshTokenToRedis(refreshToken, user.id().toString());
 
-        log.info("Login successful - userId: {}", user.getId());
+        log.info("Login successful - userId: {}", user.id());
 
         return new LoginResponseDto(accessToken,
                 jwtTokenUtil.getAccessTokenExpiration(),
@@ -64,7 +64,7 @@ public class AuthService {
         //새로운 AccessToken 생성
         String newAccessToken = jwtTokenUtil.createAccessToken(
                 userId,
-                List.of(user.getRole())
+                List.of(user.role())
         );
 
         //새로운 RefreshToken 생성 (Token Rotation)

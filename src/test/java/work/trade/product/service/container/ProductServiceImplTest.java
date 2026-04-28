@@ -77,8 +77,8 @@ class ProductServiceImplTest {
         // 테스트용 판매자 생성
         UserCreateRequestDto dto = new UserCreateRequestDto(testSellerEmail, testSellerPassword, testSellerName, null);
         UserCreateRequestDto dto1 = new UserCreateRequestDto(testSellerEmail1, testSellerPassword, testSellerName + "2", null);
-        testUserId = userService.createUser(dto).getId();
-        testUserId1 = userService.createUser(dto1).getId();
+        testUserId = userService.createUser(dto).id();
+        testUserId1 = userService.createUser(dto1).id();
 
         UserCreateRequestDto dto2 = new UserCreateRequestDto(testSellerEmail1, testSellerPassword, testSellerName+"1", null);
     }
@@ -162,9 +162,9 @@ class ProductServiceImplTest {
         //Dto Seller 검증
         assertThat(productDto.seller()).isNotNull();
         SellerDto dtoSeller = productDto.seller();
-        assertThat(dtoSeller.getId()).isEqualTo(productByRepo.getSeller().getId());
-        assertThat(dtoSeller.getEmail()).isEqualTo(productByRepo.getSeller().getEmail());
-        assertThat(dtoSeller.getName()).isEqualTo(productByRepo.getSeller().getName());
+        assertThat(dtoSeller.id()).isEqualTo(productByRepo.getSeller().getId());
+        assertThat(dtoSeller.email()).isEqualTo(productByRepo.getSeller().getEmail());
+        assertThat(dtoSeller.name()).isEqualTo(productByRepo.getSeller().getName());
 
         //Dto Category 검증
         assertThat(productDto.category()).isNotNull();
@@ -210,9 +210,9 @@ class ProductServiceImplTest {
         //Dto Seller 검증
         assertThat(productDto.seller()).isNotNull();
         SellerDto dtoSeller = productDto.seller();
-        assertThat(dtoSeller.getId()).isEqualTo(product.seller().getId());
-        assertThat(dtoSeller.getEmail()).isEqualTo(product.seller().getEmail());
-        assertThat(dtoSeller.getName()).isEqualTo(product.seller().getName());
+        assertThat(dtoSeller.id()).isEqualTo(product.seller().id());
+        assertThat(dtoSeller.email()).isEqualTo(product.seller().email());
+        assertThat(dtoSeller.name()).isEqualTo(product.seller().name());
 
         //Dto Category 검증
         assertThat(productDto.category()).isNotNull();

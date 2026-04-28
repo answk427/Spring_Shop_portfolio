@@ -131,8 +131,8 @@ class OrderServiceTest {
         //User
         UserDto buyerDto = createUser("Buyer", "buyer@naver.com", "asdf1234");
         UserDto sellerDto = createUser("Seller", "seller@naver.com", "asdf1234");
-        buyerId = buyerDto.getId();
-        sellerId = sellerDto.getId();
+        buyerId = buyerDto.id();
+        sellerId = sellerDto.id();
 
         //Category
         Category category = categoryService.findById(1L).get();
@@ -152,8 +152,8 @@ class OrderServiceTest {
         productCreateRequestDto2.setDescription("Product2 DESC");
         productCreateRequestDto2.setName("Product2");
 
-        ProductDto product1 = productService.createProduct(productCreateRequestDto1, sellerDto.getId());
-        ProductDto product2 = productService.createProduct(productCreateRequestDto2, sellerDto.getId());
+        ProductDto product1 = productService.createProduct(productCreateRequestDto1, sellerDto.id());
+        ProductDto product2 = productService.createProduct(productCreateRequestDto2, sellerDto.id());
         productId1 = product1.id();
         productId2 = product2.id();
     }
@@ -181,7 +181,7 @@ class OrderServiceTest {
         assertThat(productDto.stock()).isEqualTo(product.stock());
         assertThat(productDto.name()).isEqualTo(product.name());
         assertThat(productDto.price()).isEqualTo(product.price());
-        assertThat(productDto.sellerName()).isEqualTo(product.seller().getName());
+        assertThat(productDto.sellerName()).isEqualTo(product.seller().name());
     }
 
     void checkProduct(ProductSummaryDto productDto1, ProductSummaryDto productDto2) {
@@ -509,7 +509,7 @@ class OrderServiceTest {
 
         // When: 100명이 동시에 주문 시도
         for (int i = 0; i < threadCount; i++) {
-            Long userId = createUser("user" + i, "email" + i + "@naver.com", "password1234" + i).getId();
+            Long userId = createUser("user" + i, "email" + i + "@naver.com", "password1234" + i).id();
 
             executorService.submit(() -> {
                 try {

@@ -68,10 +68,10 @@ class UserControllerTest {
         createRequestDto.setPassword(testUserPassword);
         createRequestDto.setName(testUserName);
         UserDto userDto = userService.createUser(createRequestDto);
-        testUserId = userDto.getId();
+        testUserId = userDto.id();
 
         //테스트용 토큰 생성
-        testUserToken = jwtTokenUtil.createAccessToken(userDto.getId().toString(), List.of(Role.USER));
+        testUserToken = jwtTokenUtil.createAccessToken(userDto.id().toString(), List.of(Role.USER));
     }
 
 //*********************//
@@ -154,8 +154,8 @@ class UserControllerTest {
 
         //then
         UserDto userDto = userService.findUser(testUserId);
-        assertThat(userDto.getEmail()).isEqualTo(updateDto.getEmail());
-        assertThat(userDto.getName()).isEqualTo(updateDto.getName());
+        assertThat(userDto.email()).isEqualTo(updateDto.getEmail());
+        assertThat(userDto.name()).isEqualTo(updateDto.getName());
 
         //변경 전 ID 로그인
         assertThatThrownBy(() -> authService
