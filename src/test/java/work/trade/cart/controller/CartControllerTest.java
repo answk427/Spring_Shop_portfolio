@@ -2,6 +2,7 @@ package work.trade.cart.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,7 +23,6 @@ import work.trade.cart.dto.request.CartUpdateRequestDto;
 import work.trade.cart.dto.response.CartDto;
 import work.trade.cart.repository.CartRepository;
 import work.trade.cart.service.CartService;
-import work.trade.product.domain.Category;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.response.ProductSummaryDto;
@@ -54,21 +54,34 @@ class CartControllerTest {
             .withUsername("test")
             .withPassword("testpw");
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private MockMvc mockMvc;
 
-//******************************//
-    @Autowired private CartService cartService;
-    @Autowired private UserService userService;
-    @Autowired private ProductService productService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @Autowired private CategoryRepository categoryRepository;
-    @Autowired private CartRepository cartRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
-    //******************************//
+//*******************************//
+    @Autowired
+    private CartService cartService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private CartRepository cartRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private UserRepository userRepository;
+
+//*******************************//
+
     private String testUserToken;
     private Long userId;
     private Long productId1;
@@ -91,17 +104,14 @@ class CartControllerTest {
         UserDto userDto = userService.createUser(userCreateDto);
         userId = userDto.id();
 
-        Category testCategory = Category.builder().name("testCategory").build();
-        Category category = categoryRepository.save(testCategory);
-
         ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(
-                category.getId(), "product", "product Desc", BigDecimal.valueOf(111111), 1234566);
+                1L, "product", "product Desc", BigDecimal.valueOf(111111), 1234566);
 
         ProductDto product = productService.createProduct(productCreateDto, userId);
         productId1 = product.id();
 
         ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(
-                category.getId(), "product2", "product2 Desc", BigDecimal.valueOf(1234566),1234566);
+                1L, "product2", "product2 Desc", BigDecimal.valueOf(1234566),1234566);
 
         ProductDto product2 = productService.createProduct(productCreateDto2, userId);
         productId2 = product2.id();
@@ -110,16 +120,16 @@ class CartControllerTest {
         testUserToken = jwtTokenUtil.createAccessToken(userId.toString(), List.of(Role.USER));
     }
 
-//******************************//
+//*******************************//
 
     @Test
-    @Transactional
+    @DisplayName("장바구니 추가 - POST /api/carts")
     void addToCart() throws Exception {
         RequestAddCart(productId1, 100);
     }
 
     @Test
-    @Transactional
+    @DisplayName("장바구니 조회 - GET /api/carts")
     void getMyCart() throws Exception {
         //given
         //장바구니에 2개 생성
@@ -155,6 +165,7 @@ class CartControllerTest {
     }
 
     @Test
+    @DisplayName("장바구니 상품 수량 변경 - PUT /api/carts/{id}")
     void updateQuantity() throws Exception {
         //given
         MvcResult result = RequestAddCart(productId1, 100);
@@ -172,6 +183,7 @@ class CartControllerTest {
     }
 
     @Test
+    @DisplayName("장바구니 상품 삭제 - delete /api/carts/{id}")
     void deleteCartItem() throws Exception {
         //given
         MvcResult result = RequestAddCart(productId1, 100);
@@ -192,6 +204,7 @@ class CartControllerTest {
     }
 
     @Test
+    @DisplayName("장바구니 전체 삭제 - DELETE /api/carts")
     void deleteAllCartItems() throws Exception {
         //given
         MvcResult result = RequestAddCart(productId1, 100);

@@ -41,7 +41,8 @@ class UserServiceImplTest {
     @Autowired
     private EntityManager em;
 
-    //------------
+//*******************************//
+
     @Autowired
     AuthProviderRepository apRepo;
 
@@ -50,11 +51,10 @@ class UserServiceImplTest {
     @Autowired
     private UserRepository userRepository;
 
-    //------------
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-//------------------------------------------------------------------//
+//*******************************//
 
     private static final String testUserName = "testUserName";
     private static final String testUserEmail = "test@naver.com";
@@ -95,7 +95,8 @@ class UserServiceImplTest {
         assertThat(userDto.createdAt()).isNotNull();
         assertThat(userDto.updatedAt()).isNotNull();
     }
-//------------------------------------------------------------------//
+
+//*******************************//
 
     @Test
     @Transactional
@@ -166,6 +167,7 @@ class UserServiceImplTest {
         LocalDateTime oldCreatedAt = oldUser.getCreatedAt();
         LocalDateTime oldUpdatedAt = oldUser.getUpdatedAt();
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
         //when
@@ -201,6 +203,7 @@ class UserServiceImplTest {
         //given
         //BeforeEach에서 데이터 삽입
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
         //when
@@ -238,6 +241,4 @@ class UserServiceImplTest {
 
         //[로직시작] [로직종료] 사이에 SQL로그 1번 나가는지 확인
     }
-
-
 }

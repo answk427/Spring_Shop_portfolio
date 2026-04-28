@@ -19,7 +19,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.auth.jwt.JwtTokenUtil;
 import work.trade.auth.role.Role;
-import work.trade.product.domain.Category;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
@@ -50,50 +49,39 @@ class productControllerTest {
             .withUsername("test")
             .withPassword("testpw");
 
-    private final MockMvc mockMvc;
-    private final ObjectMapper objectMapper;
-
-    private final ProductService productService;
-    private final UserService userService;
-    private final CategoryRepository categoryRepository;
-    private final JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
-    public productControllerTest(MockMvc mockMvc, ObjectMapper objectMapper, ProductService productService, UserService userService, CategoryRepository categoryRepository, JwtTokenUtil jwtTokenUtil) {
-        this.mockMvc = mockMvc;
-        this.objectMapper = objectMapper;
-        this.productService = productService;
-        this.userService = userService;
-        this.categoryRepository = categoryRepository;
-        this.jwtTokenUtil = jwtTokenUtil;
-    }
+    private ProductService productService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
-//**************************//
-    Long testCategoryId;
-    Long testUserId;
-    String testUserToken;
+//*******************************//
 
-//**************************//
+    private Long testUserId;
+    private String testUserToken;
+
     @BeforeEach
     void InitData() {
         // 테스트용 판매자 생성
         UserCreateRequestDto dto = new UserCreateRequestDto("testEmail", "testPassword", "testSeller", null);
         UserDto testSeller = userService.createUser(dto);
         testUserId = testSeller.id();
+
         //테스트용 토큰 생성
         testUserToken = jwtTokenUtil.createAccessToken(testUserId.toString(), List.of(Role.USER));
-
-        // 테스트용 카테고리 생성
-        Category testCategory = Category.builder()
-                .name("testCategoryName")
-                .build();
-        categoryRepository.save(testCategory);
-        testCategoryId = testCategory.getId();
     }
 
     private ProductCreateRequestDto getProductCreateRequestDto() {
         ProductCreateRequestDto dto = new ProductCreateRequestDto(
-                testCategoryId, "testProductName", "testDescription", BigDecimal.valueOf(111), 11234);
+                1L, "testProductName", "testDescription", BigDecimal.valueOf(111), 11234);
         return dto;
     }
 
@@ -101,9 +89,11 @@ class productControllerTest {
         ProductCreateRequestDto dto = new ProductCreateRequestDto(categoryId, name, "설명", price, 10);
         return dto;
     }
-//**************************//
+
+//*******************************//
+
     @Test
-    @DisplayName("상품 생성 요청")
+    @DisplayName("판매 상품 생성 - POST /api/products")
     void createProduct() throws Exception {
         //given
         ProductCreateRequestDto dto = getProductCreateRequestDto();
@@ -135,7 +125,7 @@ class productControllerTest {
     }
 
     @Test
-    @DisplayName("상품 조회 - 로그인 필요X")
+    @DisplayName("상품 조회(로그인 필요X) - GET /api/products/{id}")
     void getProduct() throws Exception {
         //given
         ProductCreateRequestDto dto = getProductCreateRequestDto();
@@ -150,6 +140,7 @@ class productControllerTest {
     }
 
     @Test
+    @DisplayName("상품 수정 - PUT /api/products/{id}")
     void updateProduct() throws Exception {
         //given
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
@@ -172,7 +163,7 @@ class productControllerTest {
     }
 
     @Test
-    //@DeleteMapping("/{id}")
+    @DisplayName("상품 삭제 - DELETE /api/products/{id}")
     void deleteProduct() throws Exception {
         //given
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
@@ -186,17 +177,17 @@ class productControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
+        //삭제 후 조회시 예외
         Assertions.assertThatThrownBy(() -> productService.findProduct(product.id()));
-
     }
 
     @Test
-    //@GetMapping("/api/products")
+    @DisplayName("상품 목록 조회(로그인 필요X) - GET /api/products")
     void getProducts() throws Exception {
         // given - 상품 몇 개 생성
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품2", new BigDecimal("2000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품3", new BigDecimal("3000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(1L, "상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(1L, "상품2", new BigDecimal("2000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(1L, "상품3", new BigDecimal("3000")), testUserId);
 
         // when, then
         // 토큰 없이도 조회 가능
@@ -228,29 +219,25 @@ class productControllerTest {
     }
 
     @Test
-    //@GetMapping("/api/products/category/{categoryId}")
+    @DisplayName("카테고리별 상품 목록 조회(로그인 필요X) - GET /api/products/category/{id}")
     void getProductsByCategory() throws Exception {
-        // given - 카테고리 2개 생성
-        Category category2 = Category.builder().name("다른카테고리").build();
-        categoryRepository.save(category2);
+        // 카테고리1에 상품 2개
+        productService.createProduct(getProductCreateRequestDto(1L, "카테고리1 상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(1L, "카테고리1 상품2", new BigDecimal("2000")), testUserId);
 
-        // testCategoryId에 상품 2개
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "카테고리1 상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "카테고리1 상품2", new BigDecimal("2000")), testUserId);
-
-        // category2에 상품 1개
-        ProductCreateRequestDto dto = getProductCreateRequestDto(category2.getId(), "카테고리2 상품1", new BigDecimal("3000"));
+        // 카테고리2에 상품 1개
+        ProductCreateRequestDto dto = getProductCreateRequestDto(2L, "카테고리2 상품1", new BigDecimal("3000"));
         productService.createProduct(dto, testUserId);
 
         // when, then
         // testCategoryId로 조회 → 2개만 나와야 함
-        mockMvc.perform(get("/api/products/category/" + testCategoryId))
+        mockMvc.perform(get("/api/products/category/" + 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.totalElements").value(2));
 
         // category2로 조회 → 1개만 나와야 함
-        mockMvc.perform(get("/api/products/category/" + category2.getId()))
+        mockMvc.perform(get("/api/products/category/" + 2))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
@@ -261,17 +248,21 @@ class productControllerTest {
     }
 
     @Test
-    //@GetMapping("/api/products/my")
+    @DisplayName("내가 등록한 상품 조회 - GET /api/products/my")
     void getMyProducts() throws Exception {
         // given - testUser 상품 2개, otherUser 상품 1개 생성
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "내 상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "내 상품2", new BigDecimal("2000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(
+                1L, "내 상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(
+                1L, "내 상품2", new BigDecimal("2000")), testUserId);
 
         // otherUser 생성
-        UserCreateRequestDto otherUserDto = new UserCreateRequestDto("other@test.com", "password123", "다른유저", null);
+        UserCreateRequestDto otherUserDto = new UserCreateRequestDto(
+                "other@test.com", "password123", "다른유저", null);
         UserDto otherUser = userService.createUser(otherUserDto);
         String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.id().toString(), List.of(Role.USER));
-        productService.createProduct(getProductCreateRequestDto(testCategoryId, "다른유저 상품", new BigDecimal("3000")), otherUser.id());
+        productService.createProduct(getProductCreateRequestDto(
+                1L, "다른유저 상품", new BigDecimal("3000")), otherUser.id());
 
         // when, then
         // 토큰 없이 → 401

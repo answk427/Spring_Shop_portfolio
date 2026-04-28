@@ -14,9 +14,7 @@ import work.trade.cart.dto.request.CartAddRequestDto;
 import work.trade.cart.dto.request.CartUpdateRequestDto;
 import work.trade.cart.dto.response.CartDto;
 import work.trade.cart.dto.response.CartItemDto;
-import work.trade.product.domain.Category;
 import work.trade.product.dto.request.ProductCreateRequestDto;
-import work.trade.product.dto.response.ProductDto;
 import work.trade.product.repository.CategoryRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.dto.request.UserCreateRequestDto;
@@ -43,6 +41,7 @@ class CartServiceImplTest {
     @Autowired private EntityManager em;
 
 //******************************//
+
     @Autowired private CartService cartService;
     @Autowired private UserService userService;
     @Autowired private ProductService productService;
@@ -62,20 +61,14 @@ class CartServiceImplTest {
         UserDto userDto = userService.createUser(userCreateDto);
         userId = userDto.id();
 
-        Category testCategory = Category.builder().name("testCategory").build();
-        Category category = categoryRepository.save(testCategory);
+        ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(1L, "product", "productDesc", new BigDecimal(111111), 1234566);
+        productId1 = productService.createProduct(productCreateDto, userId).id();
 
-        ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(category.getId(), "product", "productDesc", new BigDecimal(111111), 1234566);
-        ProductDto product = productService.createProduct(productCreateDto, userId);
-        productId1 = product.id();
-
-        ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(category.getId(), "product2", "product2Desc", new BigDecimal(111111), 1234566);
-        ProductDto product2 = productService.createProduct(productCreateDto2, userId);
-        productId2 = product2.id();
+        ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(1L, "product2", "product2Desc", new BigDecimal(111111), 1234566);
+        productId2 = productService.createProduct(productCreateDto2, userId).id();
     }
 
 //******************************//
-
 
     @Test
     void addToCart() {
@@ -89,8 +82,6 @@ class CartServiceImplTest {
         System.out.println("================= [로직 시작] =================");
         CartDto cartDto = cartService.addToCart(cartAddRequestDto, userId);
         System.out.println("================= [로직 종료] =================");
-
-        Long cartId = cartDto.id();
 
         //then
         assertThat(cartDto.product().id()).isEqualTo(productId1);
@@ -115,7 +106,6 @@ class CartServiceImplTest {
     void getMyCart() {
         //given
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
-
         CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
@@ -144,7 +134,6 @@ class CartServiceImplTest {
         assertThat(myCartDto2.quantity()).isEqualTo(cartDto2.quantity());
 
         //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
-
     }
 
     @Test
@@ -217,7 +206,6 @@ class CartServiceImplTest {
     void getCartItemIdsForOrder() {
         //given
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
-
         CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);

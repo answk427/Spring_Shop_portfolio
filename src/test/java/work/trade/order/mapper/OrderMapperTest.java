@@ -38,53 +38,34 @@ class OrderMapperTest {
     private OrderStatusRepository orderStatusRepository;
 
 //*********************************//
+
+    User getUser(String email, String password, String name) {
+        return new User(email, password, null, name, Role.USER);
+    }
+
+    Product getProduct(User seller, String name, String desc, BigDecimal price, Integer stock) {
+        Category category = Category.builder().parent(null).name("category").build();
+        return Product.builder()
+                .seller(seller)
+                .category(category)
+                .name(name)
+                .description(desc)
+                .price(price)
+                .stock(stock)
+                .build();
+    }
+
     Order getOrder() {
-        User buyer = User.builder()
-                .name("Buyer2")
-                .email("Buyer2@naver.com")
-                .passwordHash("PWHASH")
-                .role(Role.USER)
-                .build();
-
-        User seller = User.builder()
-                .name("Seller2")
-                .email("Seller2@naver.com")
-                .passwordHash("PWHASH2")
-                .role(Role.USER)
-                .build();
-
-        User savedBuyer = userRepository.save(buyer);
-        User savedSeller = userRepository.save(seller);
-
-        Category category = Category.builder()
-                .name("category")
-                .build();
-
-        Product product1 = Product.builder()
-                .seller(savedSeller)
-                .category(category)
-                .stock(100)
-                .name("product1")
-                .price(new BigDecimal(1111))
-                .description("Desc")
-                .build();
-
-        Product product2 = Product.builder()
-                .seller(savedSeller)
-                .category(category)
-                .stock(1000)
-                .name("product2")
-                .price(new BigDecimal(2222))
-                .description("Desc")
-                .build();
+        User buyer = getUser("buyer@naver.com", "asdf1234", "buyer");
+        User seller = getUser("seller@naver.com", "asdf1234", "seller");
 
         OrderItem orderItem1 = OrderItem.builder()
-                .product(product1)
+                .product(getProduct(seller, "product1", "Desc", BigDecimal.valueOf(1111), 100))
                 .quantity(13)
                 .build();
 
         OrderItem orderItem2 = OrderItem.builder()
-                .product(product2)
+                .product(getProduct(seller, "product2", "Desc", BigDecimal.valueOf(2222), 1000))
                 .quantity(33)
                 .build();
 
@@ -94,13 +75,11 @@ class OrderMapperTest {
                 .description("pending상태")
                 .build();
 
-        Order order = Order.builder()
-                .buyer(savedBuyer)
+        return Order.builder()
+                .buyer(buyer)
                 .orderItems(List.of(orderItem1, orderItem2))
                 .status(orderStatus)
                 .build();
-
-        return order;
     }
 
     void checkOrderItem(OrderItemDto orderItemDto, OrderItem orderItem) {
@@ -144,11 +123,13 @@ class OrderMapperTest {
             assertThat(item.getOrder()).isSameAs(order);
         }
     }
+
     @Test
     void toOrderDto() {
         //given
         Order order = getOrder();
         List<OrderItem> orderItems = order.getOrderItems();
+
         //when
         OrderDto orderDto = orderMapper.toOrderDto(order);
 
@@ -186,8 +167,6 @@ class OrderMapperTest {
         assertThat(orderSummaryDto.itemCount()).isEqualTo(order.getOrderItems().size());
 
         checkStatus(order.getStatus(), orderSummaryDto.status());
-        OrderStatusDto statusDto = orderSummaryDto.status();
-        OrderStatus status = order.getStatus();
         assertThat(orderSummaryDto.itemCount()).isEqualTo(order.getOrderItems().size());
     }
 

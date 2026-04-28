@@ -51,36 +51,21 @@ class JwtAuthTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserService userService;
+    private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private UserService userService;
 
     @Autowired
     private AuthService authService;
 
 //*******************************//
 
-    @Test
-    @DisplayName("로그인 시 JwtToken 반환 확인")
-    void login() throws Exception {
-        //given
-        String mail = "test@test.com";
-        String password = "asdf1234";
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto(mail, password, "user1", "LOCAL");
-        UserDto userDto = userService.createUser(createRequestDto);
-
-
-        //when, then
-        LoginRequestDto loginRequestDto = new LoginRequestDto(mail, password);
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty());
+    private UserCreateRequestDto getUserCreateDto() {
+        return new UserCreateRequestDto("test@test.com", "testPassword", "testName", null);
     }
+
+//*******************************//
 
     @Test
     @DisplayName("유효하지 않은 이메일 형식 검증 되는지 확인")
@@ -95,6 +80,7 @@ class JwtAuthTest {
 
     @Test
     @Transactional
+    @DisplayName("로그인 시 JwtToken 반환 확인 - POST /api/auth/login")
     void CreateUserAndLogin() throws Exception {
         //given
         UserCreateRequestDto userCreateDto = getUserCreateDto();
@@ -138,14 +124,10 @@ class JwtAuthTest {
                 .andExpect(jsonPath("$.accessToken").doesNotExist());
     }
 
-    private UserCreateRequestDto getUserCreateDto() {
-        UserCreateRequestDto requestDto = new UserCreateRequestDto("test@test.com", "testPassword", "testName", null);
-        return requestDto;
-    }
-
 //Refresh*******************************//
+
     @Test
-    @DisplayName("RefreshToken 발급 확인")
+    @DisplayName("RefreshToken 발급 확인 - POST /api/auth/login")
     void getRefreshToken() throws Exception {
         //given
         UserCreateRequestDto createRequestDto = getUserCreateDto();

@@ -70,6 +70,19 @@ class OrderServiceTest {
             .withPassword("testpw");
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private EntityManager em;
+
+    private TransactionTemplate transactionTemplate;
+
+//*******************************//
+
+    @Autowired
     private OrderService orderService;
     @Autowired
     private OrderRepository orderRepository;
@@ -98,18 +111,8 @@ class OrderServiceTest {
     @Autowired
     private OrderStatusRepository orderStatusRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private PlatformTransactionManager transactionManager;
-
-    @Autowired
-    private EntityManager em;
-
-    private TransactionTemplate transactionTemplate;
-
 //*********************************//
+
     private Long buyerId;
     private Long sellerId;
     private Long productId1;
@@ -126,9 +129,9 @@ class OrderServiceTest {
     }
 
     @BeforeEach
+    @Transactional
     void init() {
-
-        //User
+        //구매자, 판매자 생성
         UserDto buyerDto = createUser("Buyer", "buyer@naver.com", "asdf1234");
         UserDto sellerDto = createUser("Seller", "seller@naver.com", "asdf1234");
         buyerId = buyerDto.id();
@@ -137,7 +140,7 @@ class OrderServiceTest {
         //Category
         Category category = categoryService.findById(1L).get();
 
-        //Product
+        //Product 2개 생성
         ProductCreateRequestDto productCreateRequestDto1 = new ProductCreateRequestDto(
                 category.getId(), "Product1", "Product1 DESC", new BigDecimal(1111), 100);
 
@@ -393,9 +396,6 @@ class OrderServiceTest {
         //주문 2개 생성 (둘 다 PENDING)
         addToCart(buyerId, productId1, 10);
         OrderDto order1 = orderService.createOrderFromCart(buyerId);
-
-        addToCart(buyerId, productId2, 20);
-        OrderDto order2 = orderService.createOrderFromCart(buyerId);
 
         //하나 상태 변경 (CONFIRMED)
         orderService.executeByStatus(order1.id(), buyerId, OrderStatusConstant.CONFIRMED);

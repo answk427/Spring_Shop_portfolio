@@ -1,6 +1,7 @@
 package work.trade.product.mapper;
 
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,6 +55,7 @@ class ProductMapperTest {
     }
 
     @Test
+    @DisplayName("RequestDto -> Entity 변환")
     void toEntity() {
         //given
         ProductCreateRequestDto dto = new ProductCreateRequestDto(
@@ -98,7 +100,8 @@ class ProductMapperTest {
         assertThat(product.getStock()).isEqualTo(dto.getStock());
 
         assertThat(product.getCategory()).isNotNull();
-        }
+    }
+
 
     @Test
     void toDto() {

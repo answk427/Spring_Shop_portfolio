@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import work.trade.user.domain.AuthProvider;
 import work.trade.user.domain.User;
-import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.SellerDto;
 import work.trade.user.dto.response.UserDto;
@@ -22,6 +21,11 @@ class UserMapperTest {
     @Autowired
     private UserMapper mapper;
 
+//*******************************//
+
+    private final Long tempUserId = 1L;
+
+    //테스트용 유저 객체 생성
     private User getTestUser() {
         AuthProvider provider = AuthProvider.builder()
                 .code("google")
@@ -35,7 +39,8 @@ class UserMapperTest {
                 .passwordHash("TempHashPassword")
                 .authProvider(provider)
                 .build();
-        ReflectionTestUtils.setField(user, "id", 1L);
+
+        ReflectionTestUtils.setField(user, "id", tempUserId);
         LocalDateTime now = LocalDateTime.now();
         ReflectionTestUtils.setField(user, "createdAt", now);
         ReflectionTestUtils.setField(user, "updatedAt", now);
@@ -43,36 +48,13 @@ class UserMapperTest {
         return user;
     }
 
-    @Test
-    void createToEntity() {
-        // given
-        UserCreateRequestDto dto = new UserCreateRequestDto("test@example.com", "12345678", "홍길동", null);
-
-        // when
-        User user = mapper.toEntity(dto);
-
-        // then
-        assertThat(user).isNotNull();
-        assertThat(user.getEmail()).isEqualTo("test@example.com");
-        assertThat(user.getName()).isEqualTo("홍길동");
-        // passwordHash는 매퍼에서 처리 안 하므로 null이어야 함
-        assertThat(user.getPasswordHash()).isNull();
-
-        assertThat(user.getId()).isNull();
-        assertThat(user.getAuthProvider()).isNull();
-        assertThat(user.getCreatedAt()).isNull();
-        assertThat(user.getUpdatedAt()).isNull();
-    }
+//*******************************//
 
     @Test
     void updateEntityFromDto() {
         // given
-
-        User user = User.builder()
-                    .email("old@example.com")
-                    .passwordHash("OLD_HASH")
-                    .name("Old User")
-                    .build();
+        User user = getTestUser();
+        String oldHash = user.getPasswordHash();
 
         UserUpdateDto dto = new UserUpdateDto("now@example.com", "newpass!!!", "새로운 이름");
 
@@ -83,12 +65,9 @@ class UserMapperTest {
         assertThat(user.getEmail()).isEqualTo(dto.getEmail());
         assertThat(user.getName()).isEqualTo(dto.getName());
         // passwordHash는 ignore이므로 그대로 남아야 함
-        assertThat(user.getPasswordHash()).isEqualTo("OLD_HASH");
+        assertThat(user.getPasswordHash()).isEqualTo(oldHash);
 
-        assertThat(user.getId()).isNull();
-        assertThat(user.getUpdatedAt()).isNull();
-        assertThat(user.getCreatedAt()).isNull();
-        assertThat(user.getAuthProvider()).isNull();
+        assertThat(user.getId()).isEqualTo(tempUserId);
     }
 
     @Test

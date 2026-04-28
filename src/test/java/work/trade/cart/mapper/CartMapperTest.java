@@ -29,23 +29,34 @@ class CartMapperTest {
     @Autowired
     private UserService userService;
 
+//*******************************//
+
+    User getUser() {
+        return new User("test@naver.com", "asdf", null, "name", Role.USER);
+    }
+
+    Product getProduct(User seller) {
+        Category category = Category.builder().name("category").build();
+        return Product.builder()
+                .price(new BigDecimal(100))
+                .stock(1111)
+                .description("desc")
+                .seller(seller)
+                .name("productName")
+                .category(category)
+                .build();
+    }
+
+
+//*******************************//
 
     @Test
     void toEntity() {
         //given
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(1L, 100);
+        User user = getUser();
+        Product product = getProduct(user);
 
-        User user = new User("test@naver.com", "asdf", null, "name", Role.USER);
-
-        Category category = Category.builder().name("category").build();
-        Product product = Product.builder()
-                .price(new BigDecimal(100))
-                .stock(1111)
-                .description("desc")
-                .seller(user)
-                .name("productName")
-                .category(category)
-                .build();
         //when
         Cart entity = cartMapper.toEntity(cartAddRequestDto, user, product);
 
@@ -53,12 +64,14 @@ class CartMapperTest {
         assertThat(entity.getId()).isEqualTo(null);
         assertThat(entity.getQuantity()).isEqualTo(100);
 
+        //Cart의 유저 정보 검증
         assertThat(entity.getUser()).isNotNull();
         assertThat(entity.getUser().getId()).isEqualTo(user.getId());
         assertThat(entity.getUser().getName()).isEqualTo(user.getName());
         assertThat(entity.getUser().getEmail()).isEqualTo(user.getEmail());
         assertThat(entity.getUser().getPasswordHash()).isEqualTo(user.getPasswordHash());
 
+        //Cart의 Product 정보 검증
         assertThat(entity.getProduct()).isNotNull();
         assertThat(entity.getProduct().getSeller().getId()).isEqualTo(product.getSeller().getId());
         assertThat(entity.getProduct().getDescription()).isEqualTo(product.getDescription());
@@ -71,18 +84,8 @@ class CartMapperTest {
     @Test
     void toDto() {
         //given
-        User user = new User("test@naver.com", "asdf", null, "name", Role.USER);
-
-        Category category = Category.builder().name("category").build();
-        Product product = Product.builder()
-                .price(new BigDecimal(100))
-                .stock(1111)
-                .description("desc")
-                .seller(user)
-                .name("productName")
-                .category(category)
-                .build();
-
+        User user = getUser();
+        Product product = getProduct(user);
         Cart cart = Cart.builder().quantity(100).product(product).user(user).build();
 
         //when

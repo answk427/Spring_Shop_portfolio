@@ -45,7 +45,8 @@ class OrderControllerTest {
     private ObjectMapper objectMapper;
 
 
-    //**************************************//
+//*******************************//
+
     OrderDto createOrderDto(OrderStatusDto statusDto) {
         OrderDto orderDto = new OrderDto(10L,
                 1L,
@@ -144,4 +145,3 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.status.code").value(targetStatus));
     }
 }
-

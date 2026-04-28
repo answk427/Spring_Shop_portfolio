@@ -37,8 +37,17 @@ import static org.assertj.core.api.Assertions.*;
 @Testcontainers
 class ProductServiceImplTest {
 
+    @Container
+    @ServiceConnection
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("testpw");
+
     @Autowired
     private EntityManager em;
+
+//*******************************//
 
     @Autowired
     private ProductRepository productRepository;
@@ -50,27 +59,19 @@ class ProductServiceImplTest {
     @Autowired
     private UserService userService;
 
-    //----------
+//*******************************//
+
     public static String testSellerName = "testSeller";
     public static String testSellerEmail = "seller@test.com";
     public static String testSellerEmail1 = "seller1@test.com";
     public static String testSellerPassword = "passwordHash";
     public static String testCategoryName = "전자제품";
-    public static String testCategoryName1 = "스마트폰";
 
     private Long testUserId = 0L;
     private Long testUserId1 = 0L;
     private final Long testCategoryId = 1L;
     private final Long testCategoryId1 = 2L;
 
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("testpw");
-
-//------------------------------------------------------------------//
     @BeforeEach
     @Transactional
     void InitData() {
@@ -79,15 +80,19 @@ class ProductServiceImplTest {
         UserCreateRequestDto dto1 = new UserCreateRequestDto(testSellerEmail1, testSellerPassword, testSellerName + "2", null);
         testUserId = userService.createUser(dto).id();
         testUserId1 = userService.createUser(dto1).id();
-
-        UserCreateRequestDto dto2 = new UserCreateRequestDto(testSellerEmail1, testSellerPassword, testSellerName+"1", null);
     }
 
     void verifySeller(User seller) {
-        //Entity Seller 검증
+        //Entity Seller  검증
         assertThat(seller.getId()).isEqualTo(testUserId);
         assertThat(seller.getName()).isEqualTo(testSellerName);
         assertThat(seller.getEmail()).isEqualTo(testSellerEmail);
+    }
+
+    void verifySeller(SellerDto seller) {
+        assertThat(seller.id()).isEqualTo(testUserId);
+        assertThat(seller.name()).isEqualTo(testSellerName);
+        assertThat(seller.email()).isEqualTo(testSellerEmail);
     }
 
     void verifyCategory(Category category) {
@@ -106,21 +111,29 @@ class ProductServiceImplTest {
 
         return productDto;
     }
-//------------------------------------------------------------------//
-    @Test
-    @Transactional
-    void createProduct() {
-        //given
+
+    private ProductDto createTestProduct() {
         final String productName = "Test Product";
         final BigDecimal productPrice = BigDecimal.valueOf(12121);
         final int productStock = 12123;
         final String productDescription = "테스트 제품 설명";
 
+        return createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
+    }
+
+//*******************************//
+
+    @Test
+    @Transactional
+    void createProduct() {
+        //given
+        //..
+
         //Service 코드에서 N+1문제 확인하기 위해 영속성 컨텍스트를 비움
         em.clear();
         //when
         System.out.println("================= [로직 시작] =================");
-        ProductDto product = createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
+        ProductDto product = createTestProduct();
         System.out.println("================= [로직 종료] =================");
 
         //then
@@ -129,10 +142,10 @@ class ProductServiceImplTest {
         assertThat(productByRepoOpt.isPresent()).isTrue();
         Product productByRepo = productByRepoOpt.get();
 
-        assertThat(productByRepo.getName()).isEqualTo(productName);
-        assertThat(productByRepo.getPrice()).isEqualByComparingTo(productPrice);
-        assertThat(productByRepo.getStock()).isEqualTo(productStock);
-        assertThat(productByRepo.getDescription()).isEqualTo(productDescription);
+        assertThat(productByRepo.getName()).isEqualTo(product.name());
+        assertThat(productByRepo.getPrice()).isEqualByComparingTo(product.price());
+        assertThat(productByRepo.getStock()).isEqualTo(product.stock());
+        assertThat(productByRepo.getDescription()).isEqualTo(product.description());
         assertThat(productByRepo.getCreatedAt()).isNotNull();
         assertThat(productByRepo.getUpdatedAt()).isNotNull();
 
@@ -177,12 +190,7 @@ class ProductServiceImplTest {
     @Transactional
     void findProduct() {
         // given
-        final String productName = "Find Test Product";
-        final BigDecimal productPrice = BigDecimal.valueOf(9900);
-        final int productStock = 50;
-        final String productDescription = "조회 테스트 제품 설명";
-
-        ProductDto product = createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
+        ProductDto product = createTestProduct();
 
         em.clear();
         //when
@@ -193,20 +201,17 @@ class ProductServiceImplTest {
         //then
         //-----------------Service로 얻은 Dto 검증
         assertThat(productDto.id()).isEqualTo(product.id());
-        assertThat(productDto.name()).isEqualTo(productName);
-        assertThat(productDto.price()).isEqualByComparingTo(productPrice);
-        assertThat(productDto.stock()).isEqualTo(productStock);
-        assertThat(productDto.description()).isEqualTo(productDescription);
+        assertThat(productDto.name()).isEqualTo(product.name());
+        assertThat(productDto.price()).isEqualByComparingTo(product.price());
+        assertThat(productDto.stock()).isEqualTo(product.stock());
+        assertThat(productDto.description()).isEqualTo(product.description());
 
         assertThat(productDto.createdAt()).isNotNull();
         assertThat(productDto.updatedAt()).isNotNull();
 
         //Dto Seller 검증
         assertThat(productDto.seller()).isNotNull();
-        SellerDto dtoSeller = productDto.seller();
-        assertThat(dtoSeller.id()).isEqualTo(product.seller().id());
-        assertThat(dtoSeller.email()).isEqualTo(product.seller().email());
-        assertThat(dtoSeller.name()).isEqualTo(product.seller().name());
+        verifySeller(productDto.seller());
 
         //Dto Category 검증
         assertThat(productDto.category()).isNotNull();
@@ -225,11 +230,7 @@ class ProductServiceImplTest {
     @Transactional
     void updateProduct() {
         //given
-        final String originalName = "Original Name";
-        final BigDecimal originalPrice = BigDecimal.valueOf(1000);
-        final int originalStock = 1111;
-        final String originalDesc = "Original Description";
-        ProductDto createdProduct = createTestProduct(originalName, originalPrice, originalStock, testCategoryId, testUserId, originalDesc);
+        ProductDto createdProduct = createTestProduct();
         ProductDto product = productService.findProduct(createdProduct.id());
 
         final String updateName = "Updated Name";
@@ -239,12 +240,15 @@ class ProductServiceImplTest {
 
         ProductUpdateDto updateDto = new ProductUpdateDto(testCategoryId1, updateName, updateDesc, updatePrice, updateStock);
 
+        //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
+
         //when
         System.out.println("================= [로직 시작] =================");
         ProductDto updatedDto = productService.updateProduct(updateDto, product.id(), testUserId);
         System.out.println("================= [로직 종료] =================");
 
+        //업데이트 바로 반영
         em.flush();
         em.clear();
 
@@ -278,13 +282,11 @@ class ProductServiceImplTest {
     @Transactional
     void deleteById() {
         //given
-        final String name = "delete Name";
-        final BigDecimal price = BigDecimal.valueOf(1000);
-        final int stock = 1111;
-        final String description = "delete Description";
-        ProductDto product = createTestProduct(name, price, stock, testCategoryId, testUserId, description);
+        ProductDto product = createTestProduct();
 
+        //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
+
         //when
         System.out.println("================= [로직 시작] =================");
         productService.deleteById(product.id(), testUserId);
@@ -298,15 +300,13 @@ class ProductServiceImplTest {
     @Transactional
     void findAllProducts() {
         //given
-        final String productName = "Find Test Product";
-        final BigDecimal productPrice = BigDecimal.valueOf(9900);
-        final int productStock = 50;
-        final String productDescription = "조회 테스트 제품 설명";
+        ProductDto product = createTestProduct();
+        ProductDto product1 = createTestProduct(
+                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
 
-        ProductDto product = createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
-        ProductDto product1 = createTestProduct(productName + "2", productPrice, productStock + 10, testCategoryId, testUserId, productDescription + "2");
-
+        //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
+
         //when
         System.out.println("================= [로직 시작] =================");
         Page<ProductSummaryDto> products = productService.findProducts(PageRequest.of(0, 10));
@@ -328,24 +328,21 @@ class ProductServiceImplTest {
     @Transactional
     void findProductsByCategory() {
         //given
-        final String productName = "Find Test Product";
-        final BigDecimal productPrice = BigDecimal.valueOf(9900);
-        final int productStock = 50;
-        final String productDescription = "조회 테스트 제품 설명";
+        ProductDto product = createTestProduct();
+        ProductDto product1 = createTestProduct(
+                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
+        ProductDto product2 = createTestProduct(
+                "product3", BigDecimal.valueOf(3000), 30, testCategoryId + 1, testUserId, "Product3 Desc");
 
-        ProductDto product = createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
-        ProductDto product1 = createTestProduct(productName + "2", productPrice, productStock + 10, testCategoryId, testUserId, productDescription + "2");
-        ProductDto productOtherCategory = createTestProduct(productName + "3", productPrice, productStock + 20, testCategoryId1, testUserId, productDescription + "3");
-
+        //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
-        //when
-        System.out.println("================= [로직1 시작] =================");
-        Page<ProductSummaryDto> productsByCategory = productService.findProductsByCategory(PageRequest.of(0, 10), testCategoryId);
-        System.out.println("================= [로직1 종료] =================");
 
-        System.out.println("================= [로직2 시작] =================");
+        //when
+        System.out.println("================= [로직 시작] =================");
+        Page<ProductSummaryDto> productsByCategory = productService.findProductsByCategory(PageRequest.of(0, 10), testCategoryId);
+        System.out.println("================= [로직 종료] =================");
+
         Page<ProductSummaryDto> productsByOtherCategory = productService.findProductsByCategory(PageRequest.of(0, 10), testCategoryId1);
-        System.out.println("================= [로직2 종료] =================");
 
         //then
         //categoryId로 조회 결과
@@ -365,24 +362,19 @@ class ProductServiceImplTest {
     @Transactional
     void findProductsBySellerId() {
         //given
-        final String productName = "Find Test Product";
-        final BigDecimal productPrice = BigDecimal.valueOf(9900);
-        final int productStock = 50;
-        final String productDescription = "조회 테스트 제품 설명";
-
-        ProductDto product = createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
-        ProductDto product1 = createTestProduct(productName + "2", productPrice, productStock + 10, testCategoryId, testUserId, productDescription + "2");
-        ProductDto productOtherSeller = createTestProduct(productName + "3", productPrice, productStock + 20, testCategoryId1, testUserId1, productDescription + "3");
+        ProductDto product = createTestProduct();
+        ProductDto product1 = createTestProduct(
+                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
+        ProductDto productOtherSeller = createTestProduct(
+                "product3", BigDecimal.valueOf(3000), 30, testCategoryId, testUserId1, "Product3 Desc");
 
         em.clear();
         //when
-        System.out.println("================= [로직1 시작] =================");
+        System.out.println("================= [로직 시작] =================");
         Page<ProductSummaryDto> productsBySeller = productService.findProductsBySellerId(PageRequest.of(0, 10), testUserId);
-        System.out.println("================= [로직1 종료] =================");
+        System.out.println("================= [로직 종료] =================");
 
-        System.out.println("================= [로직2 시작] =================");
         Page<ProductSummaryDto> productsByOtherSeller = productService.findProductsBySellerId(PageRequest.of(0, 10), testUserId1);
-        System.out.println("================= [로직2 종료] =================");
 
         //then
         assertThat(productsBySeller).isNotNull();
@@ -392,7 +384,6 @@ class ProductServiceImplTest {
         assertThat(productsByOtherSeller).isNotNull();
         assertThat(productsByOtherSeller.getTotalElements()).isEqualTo(1);
         assertThat(productsByOtherSeller.getContent()).hasSize(1);
-
 
         //[로직 시작]과 [로직 종료] 사이에서 join Query 1번, count Query 1번 나갔는지 로그 확인
     }

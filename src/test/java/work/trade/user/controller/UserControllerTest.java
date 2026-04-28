@@ -2,6 +2,7 @@ package work.trade.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -74,6 +75,7 @@ class UserControllerTest {
 //*********************//
 
     @Test
+    @DisplayName("계정 생성 - POST /api/users")
     void createUser() throws Exception {
         //given
         UserCreateRequestDto createRequestDto = new UserCreateRequestDto("test@email.com", "asdf4567", "testName", null);
@@ -91,6 +93,7 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("내 프로필 조회 - GET /api/users/me")
     void getMyProfile() throws Exception {
         //given
         //init에서 생성한 유저, 토큰
@@ -104,6 +107,7 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("유저 목록 조회 - GET /api/users/{id}")
     void getUser() throws Exception {
         //given
         //init에서 생성한 유저, 토큰
@@ -117,6 +121,7 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("이메일로 유저 조회 - GET /api/users/email")
     void getUserByEmail() throws Exception {
         //given
         //init에서 생성한 유저, 토큰
@@ -131,6 +136,7 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("유저 정보 업데이트 - PUT /api/users/me")
     void updateUser() throws Exception {
         //given
         UserUpdateDto updateDto = new UserUpdateDto("updateEmail@email.com", "update1234", "updateName");
@@ -165,6 +171,7 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("유저 삭제 - DELETE /api/users/me")
     void deleteUser() throws Exception {
         //given
         //init에서 생성한 유저, 토큰
