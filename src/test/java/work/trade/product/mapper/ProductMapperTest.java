@@ -56,12 +56,8 @@ class ProductMapperTest {
     @Test
     void toEntity() {
         //given
-        ProductCreateRequestDto dto = new ProductCreateRequestDto();
-        dto.setName("새상품");
-        dto.setPrice(BigDecimal.valueOf(10000));
-        dto.setStock(1232);
-        dto.setDescription("새상품 설명");
-        dto.setCategoryId(3131L);
+        ProductCreateRequestDto dto = new ProductCreateRequestDto(
+                3131L, "새상품", "새상품 설명", BigDecimal.valueOf(10000), 1232);
 
         //when
         Product entity = mapper.toEntity(dto, null, null);
@@ -87,13 +83,8 @@ class ProductMapperTest {
         Product product = getTestProduct();
         Long oldId = product.getId();
 
-        ProductUpdateDto dto = new ProductUpdateDto();
-
-        dto.setCategoryId(1311L);
-        dto.setName("테스트 dto");
-        dto.setDescription("업데이트 설명");
-        dto.setPrice(BigDecimal.valueOf(1311));
-        dto.setStock(111);
+        ProductUpdateDto dto = new ProductUpdateDto(
+                1311L, "테스트 dto", "업데이트 설명", BigDecimal.valueOf(1311), 111);
 
         //when
         product.updateFromDto(dto, product.getCategory());

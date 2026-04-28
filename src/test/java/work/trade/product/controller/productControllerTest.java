@@ -95,22 +95,13 @@ class productControllerTest {
     }
 
     private ProductCreateRequestDto getProductCreateRequestDto() {
-        ProductCreateRequestDto dto = new ProductCreateRequestDto();
-        dto.setName("testProductName");
-        dto.setPrice(new BigDecimal(111));
-        dto.setStock(11234);
-        dto.setCategoryId(testCategoryId);
-        dto.setDescription("testDescription");
+        ProductCreateRequestDto dto = new ProductCreateRequestDto(
+                testCategoryId, "testProductName", "testDescription", BigDecimal.valueOf(111), 11234);
         return dto;
     }
 
-    private ProductCreateRequestDto getProductCreateRequestDto(String name, BigDecimal price) {
-        ProductCreateRequestDto dto = new ProductCreateRequestDto();
-        dto.setCategoryId(testCategoryId);
-        dto.setName(name);
-        dto.setPrice(price);
-        dto.setStock(10);
-        dto.setDescription("설명");
+    private ProductCreateRequestDto getProductCreateRequestDto(Long categoryId, String name, BigDecimal price) {
+        ProductCreateRequestDto dto = new ProductCreateRequestDto(categoryId, name, "설명", price, 10);
         return dto;
     }
 //**************************//
@@ -167,9 +158,8 @@ class productControllerTest {
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
         ProductDto product = productService.createProduct(productCreateRequestDto, testUserId);
 
-        ProductUpdateDto updateDto = new ProductUpdateDto();
-        updateDto.setName("updateName");
-        updateDto.setDescription("updateDescription");
+        ProductUpdateDto updateDto = new ProductUpdateDto(
+                null, "updateName", "updateDescription", null, null);
 
         //when, then
         mockMvc.perform(put("/api/products/" + product.id().toString())
@@ -191,9 +181,7 @@ class productControllerTest {
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
         ProductDto product = productService.createProduct(productCreateRequestDto, testUserId);
 
-        ProductUpdateDto updateDto = new ProductUpdateDto();
-        updateDto.setName("updateName");
-        updateDto.setDescription("updateDescription");
+        ProductUpdateDto updateDto = new ProductUpdateDto(null, "updateName", "updateDescription", null, null);
 
         //when, then
         mockMvc.perform(delete("/api/products/" + product.id().toString())
@@ -209,9 +197,9 @@ class productControllerTest {
     //@GetMapping("/api/products")
     void getProducts() throws Exception {
         // given - 상품 몇 개 생성
-        productService.createProduct(getProductCreateRequestDto("상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto("상품2", new BigDecimal("2000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto("상품3", new BigDecimal("3000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품2", new BigDecimal("2000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "상품3", new BigDecimal("3000")), testUserId);
 
         // when, then
         // 토큰 없이도 조회 가능
@@ -250,12 +238,11 @@ class productControllerTest {
         categoryRepository.save(category2);
 
         // testCategoryId에 상품 2개
-        productService.createProduct(getProductCreateRequestDto("카테고리1 상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto("카테고리1 상품2", new BigDecimal("2000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "카테고리1 상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "카테고리1 상품2", new BigDecimal("2000")), testUserId);
 
         // category2에 상품 1개
-        ProductCreateRequestDto dto = getProductCreateRequestDto("카테고리2 상품1", new BigDecimal("3000"));
-        dto.setCategoryId(category2.getId());
+        ProductCreateRequestDto dto = getProductCreateRequestDto(category2.getId(), "카테고리2 상품1", new BigDecimal("3000"));
         productService.createProduct(dto, testUserId);
 
         // when, then
@@ -280,8 +267,8 @@ class productControllerTest {
     //@GetMapping("/api/products/my")
     void getMyProducts() throws Exception {
         // given - testUser 상품 2개, otherUser 상품 1개 생성
-        productService.createProduct(getProductCreateRequestDto("내 상품1", new BigDecimal("1000")), testUserId);
-        productService.createProduct(getProductCreateRequestDto("내 상품2", new BigDecimal("2000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "내 상품1", new BigDecimal("1000")), testUserId);
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "내 상품2", new BigDecimal("2000")), testUserId);
 
         // otherUser 생성
         UserCreateRequestDto otherUserDto = new UserCreateRequestDto();
@@ -290,7 +277,7 @@ class productControllerTest {
         otherUserDto.setName("다른유저");
         UserDto otherUser = userService.createUser(otherUserDto);
         String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.id().toString(), List.of(Role.USER));
-        productService.createProduct(getProductCreateRequestDto("다른유저 상품", new BigDecimal("3000")), otherUser.id());
+        productService.createProduct(getProductCreateRequestDto(testCategoryId, "다른유저 상품", new BigDecimal("3000")), otherUser.id());
 
         // when, then
         // 토큰 없이 → 401

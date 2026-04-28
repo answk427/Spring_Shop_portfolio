@@ -138,19 +138,11 @@ class OrderServiceTest {
         Category category = categoryService.findById(1L).get();
 
         //Product
-        ProductCreateRequestDto productCreateRequestDto1 = new ProductCreateRequestDto();
-        productCreateRequestDto1.setCategoryId(category.getId());
-        productCreateRequestDto1.setStock(100);
-        productCreateRequestDto1.setPrice(new BigDecimal(1111));
-        productCreateRequestDto1.setDescription("Product1 DESC");
-        productCreateRequestDto1.setName("Product1");
+        ProductCreateRequestDto productCreateRequestDto1 = new ProductCreateRequestDto(
+                category.getId(), "Product1", "Product1 DESC", new BigDecimal(1111), 100);
 
-        ProductCreateRequestDto productCreateRequestDto2 = new ProductCreateRequestDto();
-        productCreateRequestDto2.setCategoryId(category.getId());
-        productCreateRequestDto2.setStock(200);
-        productCreateRequestDto2.setPrice(new BigDecimal(2222));
-        productCreateRequestDto2.setDescription("Product2 DESC");
-        productCreateRequestDto2.setName("Product2");
+        ProductCreateRequestDto productCreateRequestDto2 = new ProductCreateRequestDto(
+                category.getId(), "Product2", "Product2 DESC", new BigDecimal(2222), 200);
 
         ProductDto product1 = productService.createProduct(productCreateRequestDto1, sellerDto.id());
         ProductDto product2 = productService.createProduct(productCreateRequestDto2, sellerDto.id());
@@ -489,12 +481,8 @@ class OrderServiceTest {
     @DisplayName("동시에 100명이 재고가 10개인 상품을 주문하면, 10명만 성공해야 한다")
     void stockConcurrencyTest() throws InterruptedException {
         // Given: 상품 재고 10개 설정 및 사용자 생성
-        ProductCreateRequestDto productCreateRequestDto = new ProductCreateRequestDto();
-        productCreateRequestDto.setCategoryId(1L);
-        productCreateRequestDto.setStock(10);
-        productCreateRequestDto.setPrice(new BigDecimal(1000));
-        productCreateRequestDto.setDescription("concurrencyProductDesc");
-        productCreateRequestDto.setName("concurrencyProductName");
+        ProductCreateRequestDto productCreateRequestDto = new ProductCreateRequestDto(
+                1L, "concurrencyProductName", "concurrencyProductDesc", BigDecimal.valueOf(1000), 10);
 
         Long productId = productService.createProduct(productCreateRequestDto, sellerId).id();
 

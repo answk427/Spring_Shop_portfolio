@@ -99,13 +99,7 @@ class ProductServiceImplTest {
 
     @Transactional
     private ProductDto createTestProduct(String name, BigDecimal price, int stock, Long categoryId, Long userId, String description) {
-        ProductCreateRequestDto dto = new ProductCreateRequestDto();
-        dto.setCategoryId(categoryId);
-        dto.setName(name);
-        dto.setPrice(price);
-        dto.setStock(stock);
-        dto.setDescription(description);
-
+        ProductCreateRequestDto dto = new ProductCreateRequestDto(categoryId, name, description, price, stock);
         ProductDto productDto = productService.createProduct(dto, userId);
         em.flush(); // DB에 반영
         em.clear(); // 1차 캐시 비우기 (실제 DB 조회 테스트를 위해)
@@ -243,12 +237,7 @@ class ProductServiceImplTest {
         final int updateStock = 2222;
         final String updateDesc = "Update Description";
 
-        ProductUpdateDto updateDto = new ProductUpdateDto();
-        updateDto.setCategoryId(testCategoryId1);
-        updateDto.setName(updateName);
-        updateDto.setPrice(updatePrice);
-        updateDto.setStock(updateStock);
-        updateDto.setDescription(updateDesc);
+        ProductUpdateDto updateDto = new ProductUpdateDto(testCategoryId1, updateName, updateDesc, updatePrice, updateStock);
 
         em.clear();
         //when

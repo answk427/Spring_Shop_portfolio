@@ -97,19 +97,15 @@ class CartControllerTest {
         Category testCategory = Category.builder().name("testCategory").build();
         Category category = categoryRepository.save(testCategory);
 
-        ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto();
-        productCreateDto.setName("product");
-        productCreateDto.setPrice(new BigDecimal(111111));
-        productCreateDto.setStock(1234566);
-        productCreateDto.setCategoryId(category.getId());
+        ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(
+                category.getId(), "product", "product Desc", BigDecimal.valueOf(111111), 1234566);
+
         ProductDto product = productService.createProduct(productCreateDto, userId);
         productId1 = product.id();
 
-        ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto();
-        productCreateDto2.setName("product2");
-        productCreateDto2.setPrice(new BigDecimal(111111));
-        productCreateDto2.setStock(1234566);
-        productCreateDto2.setCategoryId(category.getId());
+        ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(
+                category.getId(), "product2", "product2 Desc", BigDecimal.valueOf(1234566),1234566);
+
         ProductDto product2 = productService.createProduct(productCreateDto2, userId);
         productId2 = product2.id();
 
