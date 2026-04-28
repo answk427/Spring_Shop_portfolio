@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -103,6 +104,9 @@ class OrderServiceTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    @Autowired
+    private EntityManager em;
+
     private TransactionTemplate transactionTemplate;
 
 //*********************************//
@@ -184,14 +188,14 @@ class OrderServiceTest {
         assertThat(productDto1.getId()).isEqualTo(productDto2.getId());
         assertThat(productDto1.getStock()).isEqualTo(productDto2.getStock());
         assertThat(productDto1.getName()).isEqualTo(productDto2.getName());
-        assertThat(productDto1.getPrice()).isEqualTo(productDto2.getPrice());
+        assertThat(productDto1.getPrice()).isEqualByComparingTo(productDto2.getPrice());
         assertThat(productDto1.getSellerName()).isEqualTo(productDto2.getSellerName());
     }
 
     void checkOrder(OrderDto orderDto1, OrderDto orderDto2) {
         assertThat(orderDto1.getId()).isEqualTo(orderDto2.getId());
         assertThat(orderDto1.getBuyerId()).isEqualTo(orderDto2.getBuyerId());
-        assertThat(orderDto1.getTotalPrice()).isEqualTo(orderDto2.getTotalPrice());
+        assertThat(orderDto1.getTotalPrice()).isEqualByComparingTo(orderDto2.getTotalPrice());
 
         List<OrderItemDto> orderItems1 = orderDto1.getOrderItems();
         List<OrderItemDto> orderItems2 = orderDto2.getOrderItems();
@@ -200,8 +204,8 @@ class OrderServiceTest {
             OrderItemDto orderItemDto2 = orderItems2.get(i);
 
             assertThat(orderItemDto1.getId()).isEqualTo(orderItemDto2.getId());
-            assertThat(orderItemDto1.getSubtotalPrice()).isEqualTo(orderItemDto2.getSubtotalPrice());
-            assertThat(orderItemDto1.getUnitPrice()).isEqualTo(orderItemDto2.getUnitPrice());
+            assertThat(orderItemDto1.getSubtotalPrice()).isEqualByComparingTo(orderItemDto2.getSubtotalPrice());
+            assertThat(orderItemDto1.getUnitPrice()).isEqualByComparingTo(orderItemDto2.getUnitPrice());
             assertThat(orderItemDto1.getQuantity()).isEqualTo(orderItemDto2.getQuantity());
 
             checkProduct(orderItemDto1.getProduct(), orderItemDto2.getProduct());
@@ -251,8 +255,14 @@ class OrderServiceTest {
         //주문 총금액 계산 전
         BigDecimal totalSum = BigDecimal.ZERO;
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         OrderDto orderDto = orderService.createOrderFromCart(buyerId);
+        System.out.println("================= [로직 종료] =================");
+
         List<OrderItemDto> orderItems = orderDto.getOrderItems();
 
         //주문 생성 이후 product
@@ -272,19 +282,19 @@ class OrderServiceTest {
 
             //주문 상품 금액 검증
             BigDecimal sum = oldProductDto.getPrice().multiply(new BigDecimal(quantities.get(i)));
-            assertThat(orderItemDto.getSubtotalPrice()).isEqualTo(sum);
+            assertThat(orderItemDto.getSubtotalPrice()).isEqualByComparingTo(sum);
             totalSum = totalSum.add(sum);
 
             assertThat(orderItemDto.getId()).isNotNull();
             assertThat(orderItemDto.getQuantity()).isEqualTo(quantities.get(i));
-            assertThat(orderItemDto.getUnitPrice()).isEqualTo(oldProductDto.getPrice());
+            assertThat(orderItemDto.getUnitPrice()).isEqualByComparingTo(oldProductDto.getPrice());
 
             checkProduct(orderItemDto.getProduct(), productDto);
         }
 
         assertThat(orderDto.getId()).isNotNull();
         assertThat(orderDto.getBuyerId()).isEqualTo(buyerId);
-        assertThat(orderDto.getTotalPrice()).isEqualTo(totalSum);
+        assertThat(orderDto.getTotalPrice()).isEqualByComparingTo(totalSum);
 
         assertThat(orderDto.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
 
@@ -294,6 +304,15 @@ class OrderServiceTest {
 
         //장바구니가 비어있는 상태로 오더를 만들었을 때
         assertThatThrownBy(() -> orderService.createOrderFromCart(buyerId)).isInstanceOf(CartEmptyException.class);
+
+        //[로직 시작]과 [로직 종료] 사이 SQL 로그 검증
+        //user 검증 select 쿼리 1번
+        //장바구니에 있는 상품들 ID 가져오기 select cart 1번
+        //비관적락으로 Product Entity 일괄 조회 쿼리 1번
+        //상태 조회 쿼리 1번
+        //Order 생성 insert 쿼리 1번
+        //OrderItem 생성 insert 쿼리 N번
+        //Product Update 쿼리 N번(Batch Size로 1번으로 줄임)
     }
 
     @Test
@@ -303,11 +322,18 @@ class OrderServiceTest {
         addToCart(buyerId, productId1, 10);
         OrderDto oldOrderDto = orderService.createOrderFromCart(buyerId);
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         OrderDto orderDto = orderService.getOrder(oldOrderDto.getId(), buyerId);
+        System.out.println("================= [로직 종료] =================");
 
         //then
         checkOrder(oldOrderDto, orderDto);
+
+        //[로직 시작]과 [로직 종료] 사이 select 쿼리 한번
     }
 
     @Test
@@ -322,9 +348,14 @@ class OrderServiceTest {
         addToCart(buyerId, productId2, 20);
         OrderDto order2 = orderService.createOrderFromCart(buyerId);
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         Page<OrderSummaryDto> result =
-                orderService.getUserOrders(buyerId, Pageable.unpaged());
+                orderService.getUserOrders(buyerId, PageRequest.of(0, 10));
+        System.out.println("================= [로직 완료] =================");
 
         List<OrderSummaryDto> content = result.getContent();
 
@@ -343,19 +374,27 @@ class OrderServiceTest {
         assertThat(first.getItemCount()).isEqualTo(order2.getOrderItems().size());
         assertThat(second.getItemCount()).isEqualTo(order2.getOrderItems().size());
 
-        assertThat(first.getTotalPrice()).isEqualTo(order2.getTotalPrice());
-        assertThat(second.getTotalPrice()).isEqualTo(order1.getTotalPrice());
+        assertThat(first.getTotalPrice()).isEqualByComparingTo(order2.getTotalPrice());
+        assertThat(second.getTotalPrice()).isEqualByComparingTo(order1.getTotalPrice());
 
         // 4. 상태 검증 (둘 다 PENDING)
         assertThat(first.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
         assertThat(second.getStatus().getCode()).isEqualTo(OrderStatusConstant.PENDING);
+
+        //[로직 시작]과 [로직 종료] 사이 select 쿼리 한번, count 쿼리 한번
+        //JPA 최적화 시 count쿼리 안나갈 수 있음
     }
 
     @Test
     @Transactional
     void getUserOrdersEmpty() {
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
+        System.out.println("================= [로직 시작] =================");
         Page<OrderSummaryDto> result =
                 orderService.getUserOrders(buyerId, Pageable.unpaged());
+        System.out.println("================= [로직 종료] =================");
 
         assertThat(result.getContent()).isEmpty();
     }
@@ -374,9 +413,16 @@ class OrderServiceTest {
         //하나 상태 변경 (CONFIRMED)
         orderService.executeByStatus(order1.getId(), buyerId, OrderStatusConstant.CONFIRMED);
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        //상태변경 반영 위해 flush
+        em.flush();
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         Page<OrderSummaryDto> result =
                 orderService.getUserOrdersByStatus(buyerId, OrderStatusConstant.CONFIRMED, Pageable.unpaged());
+        System.out.println("================= [로직 종료] =================");
 
         List<OrderSummaryDto> content = result.getContent();
 
@@ -392,7 +438,10 @@ class OrderServiceTest {
         assertThat(dto.getStatus().getCode()).isEqualTo(OrderStatusConstant.CONFIRMED);
 
         //4. 기본 정보 검증
-        assertThat(dto.getTotalPrice()).isEqualTo(order1.getTotalPrice());
+        assertThat(dto.getTotalPrice()).isEqualByComparingTo(order1.getTotalPrice());
+
+        //[로직 시작]과 [로직 종료] 사이 Status 검증 select 쿼리 한번
+        //select orders 쿼리 한번
     }
 
     @Test
@@ -413,9 +462,14 @@ class OrderServiceTest {
         addToCart(buyerId, productId1, 10);
         OrderDto order = orderService.createOrderFromCart(buyerId);
 
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        em.clear();
+
         //when
+        System.out.println("================= [로직 시작] =================");
         OrderDto confirmed = orderService.executeByStatus(
                 order.getId(), buyerId, OrderStatusConstant.CONFIRMED);
+        System.out.println("================= [로직 종료] =================");
 
         OrderDto shipped = orderService.executeByStatus(
                 order.getId(), buyerId, OrderStatusConstant.SHIPPED);
@@ -427,6 +481,10 @@ class OrderServiceTest {
         assertThat(confirmed.getStatus().getCode()).isEqualTo(OrderStatusConstant.CONFIRMED);
         assertThat(shipped.getStatus().getCode()).isEqualTo(OrderStatusConstant.SHIPPED);
         assertThat(delivered.getStatus().getCode()).isEqualTo(OrderStatusConstant.DELIVERED);
+
+        //[로직 시작]과 [로직 종료] 사이 select orders 쿼리 한번
+        //Next Status 조회 select order_status 쿼리 한번
+        //플러쉬될 때 update 쿼리 한번
     }
 
     @Test
