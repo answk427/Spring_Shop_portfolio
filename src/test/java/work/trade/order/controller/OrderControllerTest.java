@@ -47,12 +47,13 @@ class OrderControllerTest {
 
     //**************************************//
     OrderDto createOrderDto(OrderStatusDto statusDto) {
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(10L);
-        orderDto.setTotalPrice(new BigDecimal(10000));
-        orderDto.setBuyerId(1L);
-        orderDto.setStatus(statusDto);
-        orderDto.setOrderItems(List.of(new OrderItemDto()));
+        OrderDto orderDto = new OrderDto(10L,
+                1L,
+                statusDto,
+                new BigDecimal(10000),
+                List.of(new OrderItemDto()),
+                null,
+                null);
 
         return orderDto;
     }
@@ -64,7 +65,7 @@ class OrderControllerTest {
     @WithMockUser(username = "1") // Authentication.getName()이 "1"을 반환하도록 설정
     void createOrder() throws Exception {
         // given
-        OrderDto responseDto = createOrderDto(new OrderStatusDto());
+        OrderDto responseDto = createOrderDto(new OrderStatusDto(OrderStatusConstant.PENDING, "name", "desc"));
 
         when(orderService.createOrderFromCart(anyLong())).thenReturn(responseDto);
 
@@ -85,7 +86,7 @@ class OrderControllerTest {
     void getOrder() throws Exception {
         // given
         Long orderId = 10L;
-        OrderDto responseDto = createOrderDto(new OrderStatusDto());
+        OrderDto responseDto = createOrderDto(new OrderStatusDto(OrderStatusConstant.PENDING, "name", "desc"));
         when(orderService.getOrder(eq(orderId), anyLong())).thenReturn(responseDto);
 
         // when & then
@@ -102,14 +103,9 @@ class OrderControllerTest {
     void getUserOrdersByStatus() throws Exception {
         // given
         String statusCode = OrderStatusConstant.PENDING;
-        OrderStatusDto orderStatusDto = new OrderStatusDto();
-        orderStatusDto.setCode(statusCode);
+        OrderStatusDto orderStatusDto = new OrderStatusDto(statusCode, "name", "desc");
 
-        OrderSummaryDto summary = new OrderSummaryDto();
-        summary.setId(10L);
-        summary.setStatus(orderStatusDto);
-        summary.setTotalPrice(new BigDecimal(10000));
-        summary.setItemCount(10);
+        OrderSummaryDto summary = new OrderSummaryDto(10L, orderStatusDto, new BigDecimal(10000), 10, null);
 
         Page<OrderSummaryDto> pageResponse = new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);
         when(orderService.getUserOrdersByStatus(anyLong(), eq(statusCode), any())).thenReturn(pageResponse);
@@ -134,8 +130,7 @@ class OrderControllerTest {
         OrderStatusUpdateRequestDto requestDto = new OrderStatusUpdateRequestDto();
         requestDto.setStatus(targetStatus);
 
-        OrderStatusDto orderStatusDto = new OrderStatusDto();
-        orderStatusDto.setCode(targetStatus);
+        OrderStatusDto orderStatusDto = new OrderStatusDto(targetStatus, "name", "desc");
         OrderDto responseDto = createOrderDto(orderStatusDto);
 
         when(orderService.executeByStatus(eq(orderId), anyLong(), eq(targetStatus)))
