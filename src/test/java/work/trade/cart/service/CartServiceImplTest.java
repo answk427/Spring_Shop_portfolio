@@ -90,9 +90,7 @@ class CartServiceImplTest {
     @Test
     void addToCart() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
 
         //N+1문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
@@ -126,13 +124,9 @@ class CartServiceImplTest {
     @Test
     void getMyCart() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
 
-        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto();
-        cartAddRequestDto2.setProductId(productId2);
-        cartAddRequestDto2.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
@@ -166,13 +160,10 @@ class CartServiceImplTest {
     @Test
     void updateQuantity() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
         CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, userId);
 
-        CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto();
-        cartUpdateRequestDto.setQuantity(4444);
+        CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto(4444);
 
         //N+1문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
@@ -191,9 +182,7 @@ class CartServiceImplTest {
     @Test
     void deleteCartItem() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
         CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, userId);
 
         //N+1문제 확인 위해 영속성 컨텍스트 초기화
@@ -217,13 +206,9 @@ class CartServiceImplTest {
     @Test
     void deleteAllCartItems() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
 
-        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto();
-        cartAddRequestDto2.setProductId(productId2);
-        cartAddRequestDto2.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
@@ -241,13 +226,9 @@ class CartServiceImplTest {
     @Test
     void getCartItemIdsForOrder() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId1);
-        cartAddRequestDto.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
 
-        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto();
-        cartAddRequestDto2.setProductId(productId2);
-        cartAddRequestDto2.setQuantity(100);
+        CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
         CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);

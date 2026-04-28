@@ -170,9 +170,7 @@ class OrderServiceTest {
 
     @Transactional
     void addToCart(Long userId, Long productId, Integer quantity) {
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setProductId(productId);
-        cartAddRequestDto.setQuantity(quantity);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId, quantity);
         cartService.addToCart(cartAddRequestDto, userId);
     }
 

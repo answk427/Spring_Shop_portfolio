@@ -33,9 +33,7 @@ class CartMapperTest {
     @Test
     void toEntity() {
         //given
-        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto();
-        cartAddRequestDto.setQuantity(100);
-        cartAddRequestDto.setProductId(1L);
+        CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(1L, 100);
 
         User user = new User("test@naver.com", "asdf", null, "name", Role.USER);
 

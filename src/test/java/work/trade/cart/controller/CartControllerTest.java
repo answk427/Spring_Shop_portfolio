@@ -75,9 +75,7 @@ class CartControllerTest {
     private Long productId2;
 
     private MvcResult RequestAddCart(Long productId, Integer quantity) throws Exception {
-        CartAddRequestDto dto = new CartAddRequestDto();
-        dto.setProductId(productId);
-        dto.setQuantity(quantity);
+        CartAddRequestDto dto = new CartAddRequestDto(productId, quantity);
 
         return mockMvc.perform(post("/api/carts")
                         .header("Authorization", "Bearer " + testUserToken)
@@ -170,8 +168,7 @@ class CartControllerTest {
         String responseBody = result.getResponse().getContentAsString();
         CartDto cartDto = objectMapper.readValue(responseBody, CartDto.class);
 
-        CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto();
-        cartUpdateRequestDto.setQuantity(4444);
+        CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto(4444);
 
         //when, then
         mockMvc.perform(put("/api/carts/" + cartDto.id())
