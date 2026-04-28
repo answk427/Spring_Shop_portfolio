@@ -159,10 +159,7 @@ class UserServiceImplTest {
     @Transactional
     void updateUser() {
         //given
-        UserUpdateDto updateDto = new UserUpdateDto();
-        updateDto.setName("Update Name");
-        updateDto.setEmail("Update Email");
-        updateDto.setPassword("Update Password");
+        UserUpdateDto updateDto = new UserUpdateDto("Update Email", "Update Password", "Update Name");
 
         User oldUser = userRepository.findById(testUserId).get();
         String oldPasswordHash = oldUser.getPasswordHash();

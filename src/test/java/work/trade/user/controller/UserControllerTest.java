@@ -63,10 +63,7 @@ class UserControllerTest {
 
     @BeforeEach
     void Init() {
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
-        createRequestDto.setEmail(testUserEmail);
-        createRequestDto.setPassword(testUserPassword);
-        createRequestDto.setName(testUserName);
+        UserCreateRequestDto createRequestDto = new UserCreateRequestDto(testUserEmail, testUserPassword, testUserName, null);
         UserDto userDto = userService.createUser(createRequestDto);
         testUserId = userDto.id();
 
@@ -79,10 +76,7 @@ class UserControllerTest {
     @Test
     void createUser() throws Exception {
         //given
-        UserCreateRequestDto createRequestDto = new UserCreateRequestDto();
-        createRequestDto.setEmail("test@email.com");
-        createRequestDto.setPassword("asdf4567");
-        createRequestDto.setName("testName");
+        UserCreateRequestDto createRequestDto = new UserCreateRequestDto("test@email.com", "asdf4567", "testName", null);
 
         //when, then
         mockMvc.perform(post("/api/users")
@@ -139,10 +133,7 @@ class UserControllerTest {
     @Test
     void updateUser() throws Exception {
         //given
-        UserUpdateDto updateDto = new UserUpdateDto();
-        updateDto.setEmail("updateEmail@email.com");
-        updateDto.setPassword("update1234");
-        updateDto.setName("updateName");
+        UserUpdateDto updateDto = new UserUpdateDto("updateEmail@email.com", "update1234", "updateName");
 
         //when
         mockMvc.perform(put("/api/users/me")

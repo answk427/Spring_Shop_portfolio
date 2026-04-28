@@ -6,11 +6,9 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 //회원가입용 DTO
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCreateRequestDto {

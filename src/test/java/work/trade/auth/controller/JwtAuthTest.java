@@ -139,11 +139,7 @@ class JwtAuthTest {
     }
 
     private UserCreateRequestDto getUserCreateDto() {
-        UserCreateRequestDto requestDto = new UserCreateRequestDto();
-        requestDto.setEmail("test@test.com");
-        requestDto.setPassword("testPassword");
-        requestDto.setName("testName");
-
+        UserCreateRequestDto requestDto = new UserCreateRequestDto("test@test.com", "testPassword", "testName", null);
         return requestDto;
     }
 

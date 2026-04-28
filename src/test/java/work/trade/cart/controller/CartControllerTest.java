@@ -87,10 +87,7 @@ class CartControllerTest {
 
     @BeforeEach
     void Init() {
-        UserCreateRequestDto userCreateDto = new UserCreateRequestDto();
-        userCreateDto.setName("testUser");
-        userCreateDto.setPassword("12341414");
-        userCreateDto.setEmail("test@naver.com");
+        UserCreateRequestDto userCreateDto = new UserCreateRequestDto("test@naver.com", "12341414", "testUser", null);
         UserDto userDto = userService.createUser(userCreateDto);
         userId = userDto.id();
 

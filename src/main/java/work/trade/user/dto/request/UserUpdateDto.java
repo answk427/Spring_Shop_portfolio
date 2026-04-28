@@ -2,17 +2,14 @@ package work.trade.user.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import work.trade.user.domain.User;
-
-import java.time.LocalDateTime;
 
 //회원 정보 수정용 DTO
 @Getter
-@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserUpdateDto {
 
     @Email(message = "올바른 이메일 형식이 아닙니다")

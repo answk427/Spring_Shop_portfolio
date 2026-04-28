@@ -77,10 +77,7 @@ class productControllerTest {
     @BeforeEach
     void InitData() {
         // 테스트용 판매자 생성
-        UserCreateRequestDto dto = new UserCreateRequestDto();
-        dto.setName("testSeller");
-        dto.setEmail("testEmail");
-        dto.setPassword("testPassword");
+        UserCreateRequestDto dto = new UserCreateRequestDto("testEmail", "testPassword", "testSeller", null);
         UserDto testSeller = userService.createUser(dto);
         testUserId = testSeller.id();
         //테스트용 토큰 생성
@@ -271,10 +268,7 @@ class productControllerTest {
         productService.createProduct(getProductCreateRequestDto(testCategoryId, "내 상품2", new BigDecimal("2000")), testUserId);
 
         // otherUser 생성
-        UserCreateRequestDto otherUserDto = new UserCreateRequestDto();
-        otherUserDto.setEmail("other@test.com");
-        otherUserDto.setPassword("password123");
-        otherUserDto.setName("다른유저");
+        UserCreateRequestDto otherUserDto = new UserCreateRequestDto("other@test.com", "password123", "다른유저", null);
         UserDto otherUser = userService.createUser(otherUserDto);
         String otherUserToken = jwtTokenUtil.createAccessToken(otherUser.id().toString(), List.of(Role.USER));
         productService.createProduct(getProductCreateRequestDto(testCategoryId, "다른유저 상품", new BigDecimal("3000")), otherUser.id());

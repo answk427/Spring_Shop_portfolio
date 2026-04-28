@@ -152,10 +152,7 @@ class OrderServiceTest {
 
     @Transactional
     UserDto createUser(String name, String email, String password) {
-        UserCreateRequestDto createUserRequestDto = new UserCreateRequestDto();
-        createUserRequestDto.setName(name);
-        createUserRequestDto.setEmail(email);
-        createUserRequestDto.setPassword(password);
+        UserCreateRequestDto createUserRequestDto = new UserCreateRequestDto(email, password, name, null);
 
         return userService.createUser(createUserRequestDto);
     }

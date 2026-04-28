@@ -46,10 +46,7 @@ class UserMapperTest {
     @Test
     void createToEntity() {
         // given
-        UserCreateRequestDto dto = new UserCreateRequestDto();
-        dto.setEmail("test@example.com");
-        dto.setPassword("12345678");
-        dto.setName("홍길동");
+        UserCreateRequestDto dto = new UserCreateRequestDto("test@example.com", "12345678", "홍길동", null);
 
         // when
         User user = mapper.toEntity(dto);
@@ -77,17 +74,14 @@ class UserMapperTest {
                     .name("Old User")
                     .build();
 
-        UserUpdateDto dto = new UserUpdateDto();
-        dto.setEmail("new@example.com");
-        dto.setName("새로운 이름");
-        dto.setPassword("newpass!!!"); // passwordHash는 ignore되어야 함
+        UserUpdateDto dto = new UserUpdateDto("now@example.com", "newpass!!!", "새로운 이름");
 
         // when
         user.updateFromDto(dto);
 
         // then
-        assertThat(user.getEmail()).isEqualTo("new@example.com");
-        assertThat(user.getName()).isEqualTo("새로운 이름");
+        assertThat(user.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(user.getName()).isEqualTo(dto.getName());
         // passwordHash는 ignore이므로 그대로 남아야 함
         assertThat(user.getPasswordHash()).isEqualTo("OLD_HASH");
 
