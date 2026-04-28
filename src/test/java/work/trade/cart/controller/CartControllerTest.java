@@ -38,7 +38,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -143,8 +142,8 @@ class CartControllerTest {
         CartDto cartDto2 = objectMapper.readValue(responseBody2, CartDto.class);
         List<CartDto> carts = List.of(cartDto1, cartDto2);
 
-        ProductSummaryDto product1 = cartDto1.getProduct();
-        ProductSummaryDto product2 = cartDto2.getProduct();
+        ProductSummaryDto product1 = cartDto1.product();
+        ProductSummaryDto product2 = cartDto2.product();
         List<ProductSummaryDto> products = List.of(product1, product2);
 
         //when, then
@@ -159,8 +158,8 @@ class CartControllerTest {
                     .andExpect(jsonPath("$[%d].product.stock", i).value(products.get(i).getStock()))
                     .andExpect(jsonPath("$[%d].product.sellerName", i).value(products.get(i).getSellerName()))
                     .andExpect(jsonPath("$[%d].product.categoryName", i).value(products.get(i).getCategoryName()))
-                    .andExpect(jsonPath("$[%d].id", i).value(carts.get(i).getId()))
-                    .andExpect(jsonPath("$[%d].quantity", i).value(carts.get(i).getQuantity()));
+                    .andExpect(jsonPath("$[%d].id", i).value(carts.get(i).id()))
+                    .andExpect(jsonPath("$[%d].quantity", i).value(carts.get(i).quantity()));
         }
     }
 
@@ -175,7 +174,7 @@ class CartControllerTest {
         cartUpdateRequestDto.setQuantity(4444);
 
         //when, then
-        mockMvc.perform(put("/api/carts/" + cartDto.getId())
+        mockMvc.perform(put("/api/carts/" + cartDto.id())
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cartUpdateRequestDto)))
@@ -190,7 +189,7 @@ class CartControllerTest {
         CartDto cartDto = objectMapper.readValue(responseBody, CartDto.class);
 
         //when, then
-        mockMvc.perform(delete("/api/carts/" + cartDto.getId())
+        mockMvc.perform(delete("/api/carts/" + cartDto.id())
                         .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isNoContent());
 

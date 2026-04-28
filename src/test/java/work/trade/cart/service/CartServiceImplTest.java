@@ -102,18 +102,18 @@ class CartServiceImplTest {
         CartDto cartDto = cartService.addToCart(cartAddRequestDto, userId);
         System.out.println("================= [로직 종료] =================");
 
-        Long cartId = cartDto.getId();
+        Long cartId = cartDto.id();
 
         //then
-        assertThat(cartDto.getProduct().getId()).isEqualTo(productId1);
-        assertThat(cartDto.getQuantity()).isEqualTo(cartAddRequestDto.getQuantity());
+        assertThat(cartDto.product().getId()).isEqualTo(productId1);
+        assertThat(cartDto.quantity()).isEqualTo(cartAddRequestDto.getQuantity());
 
         //when(기존 상품에 수량 추가)
         CartDto cartDto2 = cartService.addToCart(cartAddRequestDto, userId);
 
         //then
-        assertThat(cartDto2.getProduct().getId()).isEqualTo(productId1);
-        assertThat(cartDto2.getQuantity()).isEqualTo(cartAddRequestDto.getQuantity() * 2);
+        assertThat(cartDto2.product().getId()).isEqualTo(productId1);
+        assertThat(cartDto2.quantity()).isEqualTo(cartAddRequestDto.getQuantity() * 2);
 
         //[로직시작] [로직종료] 사이에 SQL로그 확인
         //올바른 유저인지 확인 SELECT USER
@@ -151,13 +151,13 @@ class CartServiceImplTest {
         //then
         assertThat(myCart.size()).isEqualTo(2);
 
-        assertThat(myCartDto1.getId()).isEqualTo(cartDto1.getId());
-        assertThat(myCartDto1.getProduct().getId()).isEqualTo(cartDto1.getProduct().getId());
-        assertThat(myCartDto1.getQuantity()).isEqualTo(cartDto1.getQuantity());
+        assertThat(myCartDto1.id()).isEqualTo(cartDto1.id());
+        assertThat(myCartDto1.product().getId()).isEqualTo(cartDto1.product().getId());
+        assertThat(myCartDto1.quantity()).isEqualTo(cartDto1.quantity());
 
-        assertThat(myCartDto2.getId()).isEqualTo(cartDto2.getId());
-        assertThat(myCartDto2.getProduct().getId()).isEqualTo(cartDto2.getProduct().getId());
-        assertThat(myCartDto2.getQuantity()).isEqualTo(cartDto2.getQuantity());
+        assertThat(myCartDto2.id()).isEqualTo(cartDto2.id());
+        assertThat(myCartDto2.product().getId()).isEqualTo(cartDto2.product().getId());
+        assertThat(myCartDto2.quantity()).isEqualTo(cartDto2.quantity());
 
         //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
 
@@ -179,11 +179,11 @@ class CartServiceImplTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        CartDto updatedCartDto = cartService.updateQuantity(cartUpdateRequestDto, createdCartDto.getId(), userId);
+        CartDto updatedCartDto = cartService.updateQuantity(cartUpdateRequestDto, createdCartDto.id(), userId);
         System.out.println("================= [로직 종료] =================");
 
         //then
-        assertThat(updatedCartDto.getQuantity()).isEqualTo(4444);
+        assertThat(updatedCartDto.quantity()).isEqualTo(4444);
 
         //[로직시작] [로직종료] 사이에 SQL로그 1번 확인
     }
@@ -201,7 +201,7 @@ class CartServiceImplTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        cartService.deleteCartItem(createdCartDto.getId(), userId);
+        cartService.deleteCartItem(createdCartDto.id(), userId);
         System.out.println("================= [로직 종료] =================");
 
         //then
@@ -260,11 +260,11 @@ class CartServiceImplTest {
         //then
         assertThat(cartItems.size()).isEqualTo(2);
 
-        assertThat(cartItems.get(0).productId()).isEqualTo(cartDto1.getProduct().getId());
-        assertThat(cartItems.get(0).quantity()).isEqualTo(cartDto1.getQuantity());
+        assertThat(cartItems.get(0).productId()).isEqualTo(cartDto1.product().getId());
+        assertThat(cartItems.get(0).quantity()).isEqualTo(cartDto1.quantity());
 
-        assertThat(cartItems.get(1).productId()).isEqualTo(cartDto2.getProduct().getId());
-        assertThat(cartItems.get(1).quantity()).isEqualTo(cartDto2.getQuantity());
+        assertThat(cartItems.get(1).productId()).isEqualTo(cartDto2.product().getId());
+        assertThat(cartItems.get(1).quantity()).isEqualTo(cartDto2.quantity());
 
         //[로직시작] [로직종료] 사이에 select SQL로그 1번 확인
     }
