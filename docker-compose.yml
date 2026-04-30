@@ -4,10 +4,12 @@ services:
     image: mysql:8.0
     container_name: local-db
     ports:
-      - "3306:3306"
+       - "3307:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=asdf      # 인텔리제이 설정과 맞출 것
       - MYSQL_DATABASE=trade_db
+    command:
+      - --innodb_ft_min_token_size=2
     volumes:
       - ./mysql_data:/var/lib/mysql    # 데이터 보존용 볼륨
 

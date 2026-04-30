@@ -245,3 +245,14 @@ out/
 /mysql_data/binlog.000004
 /mysql_data/binlog.000005
 /mysql_data/ibtmp1
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_1.ibd
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_2.ibd
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_3.ibd
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_4.ibd
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_5.ibd
+/mysql_data/trade_db/fts_000000000000043a_00000000000000c2_index_6.ibd
+/mysql_data/trade_db/fts_000000000000043a_being_deleted.ibd
+/mysql_data/trade_db/fts_000000000000043a_being_deleted_cache.ibd
+/mysql_data/trade_db/fts_000000000000043a_config.ibd
+/mysql_data/trade_db/fts_000000000000043a_deleted.ibd
+/mysql_data/trade_db/fts_000000000000043a_deleted_cache.ibd
