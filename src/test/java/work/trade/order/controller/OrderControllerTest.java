@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,7 +25,9 @@ import work.trade.order.service.OrderService;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -144,4 +147,57 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status.code").value(targetStatus));
     }
+
+    @Test
+    @DisplayName("모든 주문 목록 조회 - GET /api/orders")
+    @WithMockUser(username = "1")
+    void getOrders() throws Exception {
+        // given
+        Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        OrderSummaryDto order1 = new OrderSummaryDto(
+                1L,
+                new OrderStatusDto("PENDING", "name", "desc"),
+                new BigDecimal("10000"),
+                10,
+                null
+        );
+        OrderSummaryDto order2 = new OrderSummaryDto(
+                2L,
+                new OrderStatusDto("CONFIRMED", "name", "desc"),
+                new BigDecimal("20000"),
+                20,
+                null
+        );
+
+        Page<OrderSummaryDto> orderPage = new PageImpl<>(
+                List.of(order1, order2),
+                pageable,
+                2
+        );
+
+        given(orderService.getUserOrders(userId, pageable))
+                .willReturn(orderPage);
+
+        // when
+        mockMvc.perform(
+                        get("/api/orders")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("page", "0")
+                                .param("size", "10")
+                )
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].totalPrice").value(10000))
+                .andExpect(jsonPath("$.content[0].status.code").value("PENDING"))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].totalPrice").value(20000))
+                .andExpect(jsonPath("$.content[1].status.code").value("CONFIRMED"))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
 }
