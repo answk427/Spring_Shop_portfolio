@@ -54,4 +54,13 @@ public class OrderController {
         OrderDto orderDto = orderService.executeByStatus(orderId, userId, dto.getStatus());
         return ResponseEntity.ok(orderDto);
     }
+
+    @GetMapping
+    public ResponseEntity<Page<OrderSummaryDto>> getMyOrders(
+            Pageable pageable,
+            Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        Page<OrderSummaryDto> orders = orderService.getUserOrders(userId, pageable);
+        return ResponseEntity.ok(orders);
+    }
 }
