@@ -91,8 +91,4 @@ public class AuthService {
 
         log.info("Logout successful");
     }
-
-    public void logout(String refreshToken) {
-        logout(refreshToken, null);
-    }
 }

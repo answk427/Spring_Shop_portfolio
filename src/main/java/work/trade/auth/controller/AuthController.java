@@ -83,9 +83,10 @@ public class AuthController {
         log.info("POST /api/auth/logout start controller");
 
         String refreshToken = extractRefreshTokenFromCookie(request);
+        String accessToken = extractAccessTokenFromHeader(request);
 
-        //AuthService에서 Redis에서 RefreshToken 삭제
-        authService.logout(refreshToken);
+        //Redis에서 RefreshToken 삭제, AccessToken BlackList 등록
+        authService.logout(refreshToken, accessToken);
 
         //RefreshToken 쿠키 삭제
         ResponseCookie cookie = ResponseCookie
@@ -118,6 +119,14 @@ public class AuthController {
         }
 
         throw new RuntimeException("RefreshToken 쿠키를 찾을 수 없습니다");
+    }
+
+    private String extractAccessTokenFromHeader(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        throw new RuntimeException("AccessToken을 찾을 수 없습니다");
     }
 }
 
