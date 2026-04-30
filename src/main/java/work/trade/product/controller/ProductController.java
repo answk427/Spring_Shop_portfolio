@@ -86,4 +86,14 @@ public class ProductController {
         long sellerId = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(productService.findProductsBySellerId(pageable, sellerId));
     }
+
+    //상품 검색 (카테고리 필터 포함)
+    @GetMapping("/search")
+    public ResponseEntity<Page<ProductSummaryDto>> searchProducts(
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(productService.searchProducts(categoryId, keyword, pageable));
+    }
 }
