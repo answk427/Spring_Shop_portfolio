@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
-import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.request.ProductUpdateDto;
+import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.product.exception.CategoryNotFoundException;
 import work.trade.product.exception.ProductNotEqualSeller;
@@ -104,5 +104,10 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable) {
+        return productRepository.searchProducts(categoryId, keyword, pageable);
     }
 }
