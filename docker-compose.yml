@@ -11,7 +11,7 @@ services:
     command:
       - --innodb_ft_min_token_size=2
     volumes:
-      - ./mysql_data:/var/lib/mysql    # 데이터 보존용 볼륨
+      - mysql_data:/var/lib/mysql  # 상대 경로 대신 볼륨 이름 사용
 
   # 2. 로컬 개발용 Redis
   redis:
@@ -19,3 +19,6 @@ services:
     container_name: local-redis
     ports:
       - "6379:6379"
+
+volumes:
+  mysql_data:
