@@ -91,19 +91,19 @@ dependencies {
 }
 
 //QClass 생성 위치 설정
-def querydslDir = "src/main/generated"
+//def querydslDir = "src/main/generated"
+//
+//sourceSets {
+//	main.java.srcDirs += [ querydslDir ]
+//}
 
-sourceSets {
-	main.java.srcDirs += [ querydslDir ]
-}
+//tasks.withType(JavaCompile) {
+//	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+//}
 
-tasks.withType(JavaCompile) {
-	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
-}
-
-clean {
-	delete file(querydslDir)
-}
+//clean {
+//	delete file(querydslDir)
+//}
 
 tasks.named('test') {
 	useJUnitPlatform()
