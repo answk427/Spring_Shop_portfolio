@@ -28,9 +28,10 @@ import work.trade.order.domain.constant.OrderStatusConstant;
 import work.trade.order.dto.response.order.OrderDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
 import work.trade.order.dto.response.orderItem.OrderItemDto;
-import work.trade.order.repository.OrderItemRepository;
-import work.trade.order.repository.OrderRepository;
+import work.trade.order.dto.response.orderItem.OrderItemSummaryDto;
 import work.trade.order.repository.OrderStatusRepository;
+import work.trade.order.repository.order.OrderRepository;
+import work.trade.order.repository.orderItem.OrderItemRepository;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.dto.request.ProductCreateRequestDto;
@@ -201,7 +202,7 @@ class OrderServiceTest {
             checkProduct(orderItemDto1.getProduct(), orderItemDto2.getProduct());
         }
 
-        assertThat(orderDto1.status().code()).isEqualTo(orderDto2.status().code());
+        //assertThat(orderDto1.status().code()).isEqualTo(orderDto2.status().code());
     }
 
 //*********************************//
@@ -286,7 +287,7 @@ class OrderServiceTest {
         assertThat(orderDto.buyerId()).isEqualTo(buyerId);
         assertThat(orderDto.totalPrice()).isEqualByComparingTo(totalSum);
 
-        assertThat(orderDto.status().code()).isEqualTo(OrderStatusConstant.PENDING);
+        //assertThat(orderDto.status().code()).isEqualTo(OrderStatusConstant.PENDING);
 
         //장바구니가 비어있어야함
         List<CartDto> myCart = cartService.getMyCart(buyerId);
@@ -367,10 +368,6 @@ class OrderServiceTest {
         assertThat(first.totalPrice()).isEqualByComparingTo(order2.totalPrice());
         assertThat(second.totalPrice()).isEqualByComparingTo(order1.totalPrice());
 
-        // 4. 상태 검증 (둘 다 PENDING)
-        assertThat(first.status().code()).isEqualTo(OrderStatusConstant.PENDING);
-        assertThat(second.status().code()).isEqualTo(OrderStatusConstant.PENDING);
-
         //[로직 시작]과 [로직 종료] 사이 select 쿼리 한번, count 쿼리 한번
         //JPA 최적화 시 count쿼리 안나갈 수 있음
     }
@@ -395,10 +392,14 @@ class OrderServiceTest {
         //given
         //주문 2개 생성 (둘 다 PENDING)
         addToCart(buyerId, productId1, 10);
+        addToCart(buyerId, productId2, 100);
         OrderDto order1 = orderService.createOrderFromCart(buyerId);
 
+        addToCart(buyerId, productId1, 12);
+        OrderDto order2 = orderService.createOrderFromCart(buyerId);
+
         //하나 상태 변경 (CONFIRMED)
-        orderService.executeByStatus(order1.id(), buyerId, OrderStatusConstant.CONFIRMED);
+        orderService.confirmOrder(order2.id(), buyerId);
 
         //N+1 확인 위해 영속성 컨텍스트 초기화
         //상태변경 반영 위해 flush
@@ -407,25 +408,28 @@ class OrderServiceTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        Page<OrderSummaryDto> result =
-                orderService.getUserOrdersByStatus(buyerId, OrderStatusConstant.CONFIRMED, Pageable.unpaged());
+        Page<OrderItemSummaryDto> result =
+                orderService.getOrderItemsByStatus(buyerId, OrderStatusConstant.CONFIRMED, Pageable.unpaged());
         System.out.println("================= [로직 종료] =================");
 
-        List<OrderSummaryDto> content = result.getContent();
+        List<OrderItemSummaryDto> content = result.getContent();
 
         //then
         //1. 개수 (1개만 나와야 함)
         assertThat(content).hasSize(1);
-        OrderSummaryDto dto = content.get(0);
+        OrderItemSummaryDto dto = content.get(0);
 
-        //2. order1만 조회되어야 함
-        assertThat(dto.id()).isEqualTo(order1.id());
+        //2. Status를 변경한 OrderItem만 조회되어야 함
+        OrderItemDto confirmedOrderItemDto = order2.orderItems().get(0);
+        assertThat(dto.id()).isEqualTo(confirmedOrderItemDto.getId());
 
         //3. 상태 검증
         assertThat(dto.status().code()).isEqualTo(OrderStatusConstant.CONFIRMED);
 
         //4. 기본 정보 검증
-        assertThat(dto.totalPrice()).isEqualByComparingTo(order1.totalPrice());
+        assertThat(dto.subtotalPrice()).isEqualByComparingTo(confirmedOrderItemDto.getSubtotalPrice());
+        assertThat(dto.productName()).isEqualTo(confirmedOrderItemDto.getProduct().name());
+        assertThat(dto.quantity()).isEqualTo(confirmedOrderItemDto.getQuantity());
 
         //[로직 시작]과 [로직 종료] 사이 Status 검증 select 쿼리 한번
         //select orders 쿼리 한번
@@ -435,8 +439,8 @@ class OrderServiceTest {
     @Transactional
     void getUserOrdersByStatusEmpty() {
         //when
-        Page<OrderSummaryDto> result =
-                orderService.getUserOrdersByStatus(buyerId, OrderStatusConstant.SHIPPED, Pageable.unpaged());
+        Page<OrderItemSummaryDto> result =
+                orderService.getOrderItemsByStatus(buyerId, OrderStatusConstant.SHIPPED, Pageable.unpaged());
 
         //then
         assertThat(result.getContent()).isEmpty();
@@ -444,7 +448,7 @@ class OrderServiceTest {
 
     @Test
     @Transactional
-    void executeByStatusSuccessFlow() {
+    void advanceOrderItemStatusSuccessFlow() {
         //given
         addToCart(buyerId, productId1, 10);
         OrderDto order = orderService.createOrderFromCart(buyerId);
@@ -454,20 +458,23 @@ class OrderServiceTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        OrderDto confirmed = orderService.executeByStatus(
-                order.id(), buyerId, OrderStatusConstant.CONFIRMED);
+        OrderDto confirmed = orderService.confirmOrder(
+                order.id(), buyerId);
         System.out.println("================= [로직 종료] =================");
 
-        OrderDto shipped = orderService.executeByStatus(
-                order.id(), buyerId, OrderStatusConstant.SHIPPED);
+        System.out.println("================= [로직 시작2] =================");
 
-        OrderDto delivered = orderService.executeByStatus(
-                order.id(), buyerId, OrderStatusConstant.DELIVERED);
+        OrderItemDto shipped = orderService.shipOrderItem(
+                confirmed.orderItems().getFirst().getId(), buyerId);
+        System.out.println("================= [로직 종료2] =================");
+
+        OrderItemDto delivered = orderService.deliverOrderItem(
+                shipped.getId(), buyerId);
 
         //then
-        assertThat(confirmed.status().code()).isEqualTo(OrderStatusConstant.CONFIRMED);
-        assertThat(shipped.status().code()).isEqualTo(OrderStatusConstant.SHIPPED);
-        assertThat(delivered.status().code()).isEqualTo(OrderStatusConstant.DELIVERED);
+        assertThat(confirmed.orderItems().getFirst().getStatus().code()).isEqualTo(OrderStatusConstant.CONFIRMED);
+        assertThat(shipped.getStatus().code()).isEqualTo(OrderStatusConstant.SHIPPED);
+        assertThat(delivered.getStatus().code()).isEqualTo(OrderStatusConstant.DELIVERED);
 
         //[로직 시작]과 [로직 종료] 사이 select orders 쿼리 한번
         //Next Status 조회 select order_status 쿼리 한번

@@ -15,11 +15,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import work.trade.order.domain.constant.OrderStatusConstant;
-import work.trade.order.dto.request.OrderStatusUpdateRequestDto;
 import work.trade.order.dto.response.order.OrderDto;
 import work.trade.order.dto.response.order.OrderStatusDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
 import work.trade.order.dto.response.orderItem.OrderItemDto;
+import work.trade.order.dto.response.orderItem.OrderItemSummaryDto;
 import work.trade.order.service.OrderService;
 
 import java.math.BigDecimal;
@@ -51,11 +51,15 @@ class OrderControllerTest {
 //*******************************//
 
     OrderDto createOrderDto(OrderStatusDto statusDto) {
+        OrderItemDto orderItem = new OrderItemDto();
+        orderItem.setId(1L);
+        orderItem.setQuantity(11);
+        orderItem.setStatus(statusDto);
+
         OrderDto orderDto = new OrderDto(10L,
                 1L,
-                statusDto,
                 new BigDecimal(10000),
-                List.of(new OrderItemDto()),
+                List.of(orderItem),
                 null,
                 null);
 
@@ -109,10 +113,12 @@ class OrderControllerTest {
         String statusCode = OrderStatusConstant.PENDING;
         OrderStatusDto orderStatusDto = new OrderStatusDto(statusCode, "name", "desc");
 
-        OrderSummaryDto summary = new OrderSummaryDto(10L, orderStatusDto, new BigDecimal(10000), 10, null);
+        OrderItemSummaryDto summary = new OrderItemSummaryDto(
+                10L, "productName", orderStatusDto, 10,
+                new BigDecimal(10000), null);
 
-        Page<OrderSummaryDto> pageResponse = new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);
-        when(orderService.getUserOrdersByStatus(anyLong(), eq(statusCode), any())).thenReturn(pageResponse);
+        Page<OrderItemSummaryDto> pageResponse = new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);
+        when(orderService.getOrderItemsByStatus(anyLong(), eq(statusCode), any())).thenReturn(pageResponse);
 
         // when & then
         mockMvc.perform(get("/api/orders/status/{status}", statusCode)
@@ -131,21 +137,19 @@ class OrderControllerTest {
         // given
         Long orderId = 10L;
         String targetStatus = OrderStatusConstant.CONFIRMED;
-        OrderStatusUpdateRequestDto requestDto = new OrderStatusUpdateRequestDto(targetStatus);
 
         OrderStatusDto orderStatusDto = new OrderStatusDto(targetStatus, "name", "desc");
         OrderDto responseDto = createOrderDto(orderStatusDto);
 
-        when(orderService.executeByStatus(eq(orderId), anyLong(), eq(targetStatus)))
+        when(orderService.confirmOrder(eq(orderId), anyLong()))
                 .thenReturn(responseDto);
 
         // when & then
-        mockMvc.perform(patch("/api/orders/{orderId}/status", orderId)
+        mockMvc.perform(patch("/api/orders/{orderId}/confirm", orderId)
                         .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status.code").value(targetStatus));
+                .andExpect(jsonPath("$.orderItems[0].status.code").value(targetStatus));
     }
 
     @Test
@@ -158,14 +162,12 @@ class OrderControllerTest {
 
         OrderSummaryDto order1 = new OrderSummaryDto(
                 1L,
-                new OrderStatusDto("PENDING", "name", "desc"),
                 new BigDecimal("10000"),
                 10,
                 null
         );
         OrderSummaryDto order2 = new OrderSummaryDto(
                 2L,
-                new OrderStatusDto("CONFIRMED", "name", "desc"),
                 new BigDecimal("20000"),
                 20,
                 null
@@ -192,10 +194,8 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].totalPrice").value(10000))
-                .andExpect(jsonPath("$.content[0].status.code").value("PENDING"))
                 .andExpect(jsonPath("$.content[1].id").value(2L))
                 .andExpect(jsonPath("$.content[1].totalPrice").value(20000))
-                .andExpect(jsonPath("$.content[1].status.code").value("CONFIRMED"))
                 .andExpect(jsonPath("$.totalElements").value(2))
                 .andExpect(jsonPath("$.totalPages").value(1));
     }

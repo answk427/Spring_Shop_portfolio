@@ -8,6 +8,7 @@ import work.trade.auth.role.Role;
 import work.trade.order.domain.Order;
 import work.trade.order.domain.OrderItem;
 import work.trade.order.domain.OrderStatus;
+import work.trade.order.domain.constant.OrderStatusConstant;
 import work.trade.order.dto.response.order.OrderDto;
 import work.trade.order.dto.response.order.OrderStatusDto;
 import work.trade.order.dto.response.order.OrderSummaryDto;
@@ -65,26 +66,27 @@ class OrderMapperTest {
         User buyer = getUser("buyer@naver.com", "asdf1234", "buyer");
         User seller = getUser("seller@naver.com", "asdf1234", "seller");
 
+        OrderStatus orderStatus = OrderStatus.builder()
+                .code(OrderStatusConstant.PENDING)
+                .name("pending")
+                .description("pending상태")
+                .build();
+
         OrderItem orderItem1 = OrderItem.builder()
                 .product(getProduct(seller, "product1", "Desc", BigDecimal.valueOf(1111), 100))
                 .quantity(13)
+                .status(orderStatus)
                 .build();
 
         OrderItem orderItem2 = OrderItem.builder()
                 .product(getProduct(seller, "product2", "Desc", BigDecimal.valueOf(2222), 1000))
                 .quantity(33)
-                .build();
-
-        OrderStatus orderStatus = OrderStatus.builder()
-                .code("PENDING")
-                .name("pending")
-                .description("pending상태")
+                .status(orderStatus)
                 .build();
 
         return Order.builder()
                 .buyer(buyer)
                 .orderItems(List.of(orderItem1, orderItem2))
-                .status(orderStatus)
                 .build();
     }
 
@@ -156,7 +158,10 @@ class OrderMapperTest {
         }
 
         //Status 검사
-        checkStatus(order.getStatus(), orderDto.status());
+        for (int i = 0; i < orderDto.orderItems().size(); ++i) {
+            checkStatus(order.getOrderItems().get(i).getStatus(),
+                    orderDto.orderItems().get(i).getStatus());
+        }
     }
 
     @Test
@@ -170,9 +175,6 @@ class OrderMapperTest {
         //then
         assertThat(orderSummaryDto.id()).isEqualTo(order.getId());
         assertThat(orderSummaryDto.totalPrice()).isEqualTo(order.getTotalPrice());
-        assertThat(orderSummaryDto.itemCount()).isEqualTo(order.getOrderItems().size());
-
-        checkStatus(order.getStatus(), orderSummaryDto.status());
         assertThat(orderSummaryDto.itemCount()).isEqualTo(order.getOrderItems().size());
     }
 
