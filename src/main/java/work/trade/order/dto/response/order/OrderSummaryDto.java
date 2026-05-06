@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 public record OrderSummaryDto(
         Long id,
-        OrderStatusDto status,
         BigDecimal totalPrice,
         Integer itemCount, //주문 항목 ,
         LocalDateTime createdAt

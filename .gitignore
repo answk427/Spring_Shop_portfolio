@@ -256,3 +256,7 @@ out/
 /mysql_data/trade_db/fts_000000000000043a_config.ibd
 /mysql_data/trade_db/fts_000000000000043a_deleted.ibd
 /mysql_data/trade_db/fts_000000000000043a_deleted_cache.ibd
+/src/main/generated/work/trade/wallet/domain/QAccountRecord.java
+/src/main/generated/work/trade/wallet/domain/QAccountRecordType.java
+/src/main/generated/work/trade/wallet/domain/QWallet.java
+/src/main/generated/work/trade/wallet/mapper/WalletMapperImpl.java

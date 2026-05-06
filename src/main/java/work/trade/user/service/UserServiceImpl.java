@@ -2,6 +2,7 @@ package work.trade.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +14,15 @@ import work.trade.user.domain.User;
 import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.request.UserUpdateDto;
 import work.trade.user.dto.response.UserDto;
+import work.trade.user.event.UserCreatedEvent;
 import work.trade.user.exception.AuthProviderNotFoundException;
 import work.trade.user.exception.UserDuplicateEmailException;
 import work.trade.user.exception.UserNotFoundException;
 import work.trade.user.mapper.UserMapper;
 import work.trade.user.repository.AuthProviderRepository;
 import work.trade.user.repository.UserRepository;
+import work.trade.wallet.domain.Wallet;
+import work.trade.wallet.repository.WalletRepository;
 
 @Slf4j
 @Service
@@ -28,9 +32,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
     private final AuthProviderRepository apRepository;
 
+    private final WalletRepository walletRepository;
+
     private final PasswordEncoder passwordEncoder;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     //Util----------------------------//
     private String createPasswordHash(String password) {
@@ -61,6 +70,10 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        log.info("UserCreated Event 발행");
+        eventPublisher.publishEvent(new UserCreatedEvent(savedUser));
+
         log.info("Complete CreateUser email: {}, userId: {}", dto.getEmail(), savedUser.getId());
         return userMapper.toDto(savedUser);
     }
@@ -100,6 +113,12 @@ public class UserServiceImpl implements UserService {
     public void deleteById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException());
+
+        // 유저와 연결된 지갑을 찾아 연관관계를 끊음
+        // 이 코드가 수행되어야 JPA가 안전하다고 판단함
+        walletRepository.findByUser_Id(user.getId()).ifPresent(
+                Wallet::setUserNull);
+
         userRepository.delete(user);
     }
 

@@ -9,7 +9,6 @@ import java.util.List;
 public record OrderDto(
         Long id,
         Long buyerId,
-        OrderStatusDto status,
         BigDecimal totalPrice,
         List<OrderItemDto>orderItems,
         LocalDateTime createdAt,
