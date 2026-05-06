@@ -151,8 +151,6 @@ public class OrderItem {
 
     // 환불이 필요한 상태인지 확인
     public boolean needsRefund() {
-        return canBeCancelled() &&
-                (this.status.getCode().equals(OrderStatusConstant.CONFIRMED) ||
-                        this.status.getCode().equals(OrderStatusConstant.DELIVERED));
+        return this.status.getCode().equals(OrderStatusConstant.DELIVERED);
     }
 }

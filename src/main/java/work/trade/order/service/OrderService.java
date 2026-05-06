@@ -151,9 +151,12 @@ public class OrderService {
     //CONFIRM은 ORDER 단위로 결제
     public OrderDto confirmOrder(Long orderId, Long userId) {
         Order order = getOrderByIdAndUserId(orderId, userId);
+
+        //구매자 Wallet에서 잔고 차감
+        walletService.deduct(userId, order.getTotalPrice());
+
         OrderStatus confirmState = orderStatusRepository.findById(OrderStatusConstant.CONFIRMED)
                 .orElseThrow(() -> new OrderStatusNotFoundException());
-
         for (OrderItem orderItem : order.getOrderItems()) {
             orderItem.advanceOrderStatus(confirmState);
         }
@@ -219,10 +222,13 @@ public class OrderService {
         OrderItem orderItem = advanceOrderItemStatusInternal
                 (orderItemId, userId, OrderStatusConstant.DELIVERED);
 
+        //배송이 완료되면 판매자에게 입금됨.
+        if (orderItem.needsRefund()) {
+            Long sellerId = orderItem.getProduct().getSeller().getId();
+            walletService.deposit(sellerId, orderItem.getSubtotalPrice());
+        }
+
         log.info("배송 완료 - orderId: {}", orderItem.getId());
-
-        //todo : 배송이 완료되면 판매자에게 입금됨.
-
         return orderMapper.toOrderItemDto(orderItem);
     }
 
@@ -246,8 +252,7 @@ public class OrderService {
     }
 
     public OrderItemDto returnOrderItem(Long orderItemId, Long userId) {
-        OrderItem orderItem = advanceOrderItemStatusInternal
-                (orderItemId, userId, OrderStatusConstant.RETURNED);
+        OrderItem orderItem = getOrderItem(orderItemId, userId);
 
         //재고복구
         Long productId = orderItem.getProduct().getId();
@@ -256,13 +261,19 @@ public class OrderService {
 
         product.increaseStock(orderItem.getQuantity());
 
-        //todo : 판매자의 Wallet에서 환불된 만큼 차감
+        if (orderItem.needsRefund()) {
+            //판매자의 Wallet에서 환불된 만큼 차감
+            walletService.deductByRefund(product.getSeller().getId(), orderItem.getSubtotalPrice());
+            //구매자의 Wallet에 환불된 만큼 복구
+            walletService.depositByRefund(userId, orderItem.getSubtotalPrice());
+        }
+
+        advanceOrderItemStatusInternal(orderItemId, userId, OrderStatusConstant.RETURNED);
 
         log.info("반품 완료 - orderId: {}", orderItemId);
 
         return orderMapper.toOrderItemDto(orderItem);
     }
-
 
 //*******************************//
 
@@ -293,9 +304,7 @@ public class OrderService {
     }
 
     private void cancelOrderItemInternal(OrderItem orderItem, Product product) {
-        boolean needsRefund = orderItem.needsRefund();
-
-        //상태 변경
+        // 취소 상태로 변경
         OrderStatus cancelStatus = orderStatusRepository.findById(OrderStatusConstant.CANCELLED)
                 .orElseThrow(() -> new OrderStatusNotFoundException());
         orderItem.advanceOrderStatus(cancelStatus);
@@ -304,10 +313,5 @@ public class OrderService {
         product.increaseStock(orderItem.getQuantity());
         log.debug("재고 복구 - productId: {}, quantity: {}",
                 product.getId(), orderItem.getQuantity());
-
-        // todo : 환불
-        if (needsRefund) {
-
-        }
     }
 }

@@ -45,6 +45,7 @@ import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.response.UserDto;
 import work.trade.user.repository.UserRepository;
 import work.trade.user.service.UserService;
+import work.trade.wallet.service.WalletService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -112,6 +113,9 @@ class OrderServiceTest {
     @Autowired
     private OrderStatusRepository orderStatusRepository;
 
+    @Autowired
+    private WalletService walletService;
+
 //*********************************//
 
     private Long buyerId;
@@ -137,6 +141,9 @@ class OrderServiceTest {
         UserDto sellerDto = createUser("Seller", "seller@naver.com", "asdf1234");
         buyerId = buyerDto.id();
         sellerId = sellerDto.id();
+
+        //테스트용 잔고 10만원
+        walletService.deposit(buyerId, BigDecimal.valueOf(100000L));
 
         //Category
         Category category = categoryService.findById(1L).get();
@@ -453,6 +460,9 @@ class OrderServiceTest {
         addToCart(buyerId, productId1, 10);
         OrderDto order = orderService.createOrderFromCart(buyerId);
 
+        BigDecimal expectBalance = walletService.getBalance(order.buyerId())
+                .subtract(order.totalPrice());
+
         //N+1 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
@@ -475,6 +485,9 @@ class OrderServiceTest {
         assertThat(confirmed.orderItems().getFirst().getStatus().code()).isEqualTo(OrderStatusConstant.CONFIRMED);
         assertThat(shipped.getStatus().code()).isEqualTo(OrderStatusConstant.SHIPPED);
         assertThat(delivered.getStatus().code()).isEqualTo(OrderStatusConstant.DELIVERED);
+
+        //confirm시 wallet에서 돈 차감
+        assertThat(walletService.getBalance(confirmed.buyerId())).isEqualByComparingTo(expectBalance);
 
         //[로직 시작]과 [로직 종료] 사이 select orders 쿼리 한번
         //Next Status 조회 select order_status 쿼리 한번
@@ -617,5 +630,31 @@ class OrderServiceTest {
 
         threadA.join();
         threadB.join();
+    }
+
+    @Test
+    void Refund() {
+        //given
+        addToCart(buyerId, productId1, 10);
+        OrderDto order = orderService.createOrderFromCart(buyerId);
+
+        BigDecimal originBalance = walletService.getBalance(order.buyerId());
+        BigDecimal confirmedBalance = originBalance.subtract(order.totalPrice());
+
+        //when, then
+        //컨펌 후 잔액 체크
+        OrderDto confirmed = orderService.confirmOrder(
+                order.id(), buyerId);
+        assertThat(walletService.getBalance(buyerId)).isEqualByComparingTo(confirmedBalance);
+
+        //배달 완료 상태에서 반품
+        OrderItemDto shipped = orderService.shipOrderItem(
+                confirmed.orderItems().getFirst().getId(), buyerId);
+        OrderItemDto delivered = orderService.deliverOrderItem(
+                shipped.getId(), buyerId);
+        OrderItemDto returned = orderService.returnOrderItem(
+                delivered.getId(), buyerId);
+        //처음 잔고와 같아야 함
+        assertThat(walletService.getBalance(buyerId)).isEqualByComparingTo(originBalance);
     }
 }

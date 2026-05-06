@@ -1,13 +1,11 @@
 package work.trade.wallet.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import work.trade.order.domain.Order;
-import work.trade.order.domain.OrderItem;
+import org.springframework.transaction.annotation.Transactional;
 import work.trade.user.domain.User;
 import work.trade.user.event.UserCreatedEvent;
 import work.trade.user.exception.UserNotFoundException;
@@ -25,10 +23,6 @@ import work.trade.wallet.repository.AccountRecordTypeRepository;
 import work.trade.wallet.repository.WalletRepository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -45,7 +39,7 @@ public class WalletService {
 //----------------------------//
 
     @EventListener
-    public void onUserCreated(UserCreatedEvent event) {
+    public void onUserCreatedEvent(UserCreatedEvent event) {
         log.info("UserCreated Event 수신 : WalletService");
 
         User user = event.user();
@@ -72,91 +66,94 @@ public class WalletService {
         }
     }
 
-    private Map<User, BigDecimal> getSellerAmount(Order order) {
-        Map<User, BigDecimal> sellerRefunds = new HashMap<>();
-
-        for (OrderItem orderItem : order.getOrderItems()) {
-            User seller = orderItem.getProduct().getSeller();
-            BigDecimal amount = orderItem.getSubtotalPrice();
-
-            sellerRefunds.merge(seller, amount, BigDecimal::add);
-        }
-        return sellerRefunds;
+    private Wallet getWallet(Long userId) {
+        return walletRepository.findByUser_Id(userId).
+                orElseThrow(() -> new WalletNotFoundException(userId));
     }
 
+    private AccountRecordType getAccountRecordType(String recordType) {
+        return accountRecordTypeRepository
+                .findById(recordType)
+                .orElseThrow(() -> new AccountRecordTypeNotFoundException());
+    }
+
+    private AccountRecord saveAccountRecord(String recordType, BigDecimal amount, Wallet wallet) {
+        AccountRecordType accountRecordType = getAccountRecordType(recordType);
+
+        AccountRecord record = AccountRecord.builder()
+                .wallet(wallet)
+                .type(accountRecordType)
+                .amount(amount)
+                .build();
+        return accountRecordRepository.save(record);
+    }
 //----------------------------//
 
-    public void depositFromOrderDelivery(Order order) {
-        log.info("판매 완료 시 판매자에게 돈 입금 시작");
+    // 잔고 차감
+    public void deduct(Long userId, BigDecimal amount) {
+        log.info("userId:{}, 잔고 차감 시작 amount:{}", userId, amount);
 
-        // 판매자별로 따로 계산
-        Map<User, BigDecimal> sellerAmounts = getSellerAmount(order);
+        Wallet wallet = getWallet(userId);
+        wallet.deduct(amount);
 
-        // 각 판매자에게 입금
-        List<AccountRecord> accountRecords = new ArrayList<AccountRecord>();
-        AccountRecordType accountRecordType = accountRecordTypeRepository
-                .findById(AccountRecordTypeConstant.SALE)
-                .orElseThrow(()-> new AccountRecordTypeNotFoundException());
+        saveAccountRecord(AccountRecordTypeConstant.PAYMENT, amount, wallet);
 
-        for (Map.Entry<User, BigDecimal> entry : sellerAmounts.entrySet()) {
-            User seller = entry.getKey();
-            BigDecimal amount = entry.getValue();
-
-            Wallet wallet = walletRepository.findByUser_Id(seller.getId())
-                    .orElseThrow();
-            wallet.depositFromSale(amount);
-            log.info("판매자ID:{}에게 {}원 입금", seller.getId(), amount);
-
-            AccountRecord record = AccountRecord.builder()
-                    .wallet(wallet)
-                    .type(accountRecordType)
-                    .amount(amount)
-                    .build();
-
-            accountRecords.add(record);
-        }
-
-        accountRecordRepository.saveAll(accountRecords);
-        log.info("판매 완료 시 판매자에게 돈 입금 완료");
+        log.info("userId:{}, 잔고 차감 완료 amount:{}", userId, amount);
     }
 
-    @Transactional
-    public void refundForCancelledOrder(Order order) {
-        log.info("주문 취소 시 판매자에게 돈 차감 시작");
+    // 판매상품 환불로 인한 판매자 잔고 차감
+    public void deductByRefund(Long userId, BigDecimal amount) {
+        log.info("userId:{}, 환불 잔고 차감 시작 amount:{}", userId, amount);
 
-        // 판매자별로 금액 합산
-        Map<User, BigDecimal> sellerRefunds = getSellerAmount(order);
+        Wallet wallet = getWallet(userId);
+        wallet.deductByRefund(amount);
 
-        AccountRecordType refundType = accountRecordTypeRepository
-                .findById(AccountRecordTypeConstant.REFUND)
-                .orElseThrow(() -> new AccountRecordTypeNotFoundException());
+        saveAccountRecord(AccountRecordTypeConstant.REFUND, amount, wallet);
 
-        // 판매자별로 처리
-        List<AccountRecord> accountRecords = new ArrayList<>();
+        log.info("userId:{}, 환불 잔고 차감 완료 amount:{}", userId, amount);
+    }
 
-        for (Map.Entry<User, BigDecimal> entry : sellerRefunds.entrySet()) {
-            User seller = entry.getKey();
-            BigDecimal totalRefund = entry.getValue();
+    // 잔고 증가
+    public void deposit(Long userId, BigDecimal amount) {
+        log.info("userId:{}, 잔고 증가 시작 amount:{}", userId, amount);
 
-            Wallet sellerWallet = walletRepository.findByUser_Id(seller.getId())
-                    .orElseThrow(() -> new WalletNotFoundException(seller.getId()));
+        Wallet wallet = getWallet(userId);
+        wallet.deposit(amount);
 
-            sellerWallet.withdraw(totalRefund);
-            log.info("판매자[{}]에게서 {}원 환불됨", seller.getId(), totalRefund);
+        saveAccountRecord(AccountRecordTypeConstant.SALE, amount, wallet);
 
-            // 환불 기록
-            AccountRecord record = AccountRecord.builder()
-                    .wallet(sellerWallet)
-                    .type(refundType)
-                    .amount(totalRefund)
-                    .build();
+        log.info("userId:{}, 잔고 증가 완료 amount:{}", userId, amount);
+    }
 
-            accountRecords.add(record);
-        }
+    // 판매상품 환불로 인한 구매자 잔고 증가
+    public void depositByRefund(Long userId, BigDecimal amount) {
+        log.info("userId:{}, 환불 잔고 증가 시작 amount:{}", userId, amount);
 
-        accountRecordRepository.saveAll(accountRecords);
+        Wallet wallet = getWallet(userId);
+        wallet.deposit(amount);
 
-        log.info("주문 취소 시 판매자에게 돈 차감 완료");
+        saveAccountRecord(AccountRecordTypeConstant.REFUND, amount, wallet);
+
+        log.info("userId:{}, 환불 잔고 증가 완료 amount:{}", userId, amount);
+    }
+
+    // 계좌로 출금
+    public void payout(Long userId, BigDecimal amount) {
+        log.info("userId:{}, 계좌로 출금 시작 amount:{}", userId, amount);
+
+        Wallet wallet = getWallet(userId);
+        wallet.deduct(amount);
+
+        saveAccountRecord(AccountRecordTypeConstant.WITHDRAWAL, amount, wallet);
+
+        log.info("userId:{}, 계좌로 출금 완료 amount:{}", userId, amount);
+    }
+
+
+    @Transactional(readOnly = true)
+    public BigDecimal getBalance(Long userId) {
+        Wallet wallet = getWallet(userId);
+        return wallet.getBalance();
     }
 }
 

@@ -3,6 +3,8 @@ package work.trade.wallet.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import work.trade.user.domain.User;
+import work.trade.wallet.exception.WalletAmountException;
+import work.trade.wallet.exception.WalletInsufficientBalanceException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,22 +38,35 @@ public class Wallet {
     private LocalDateTime updatedAt;
 
 
-    //판매자에게 돈 입금
-    public void depositFromSale(BigDecimal amount) {
+    //잔고 증가
+    public void deposit(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("입금액은 0보다 커야 합니다");
+            throw new WalletAmountException("입금액은 0보다 커야 합니다");
         }
-        this.balance = this.balance.add(amount);
+        balance = balance.add(amount);
     }
 
     // 출금
-    // 환불로 인한 소지금액은 음수 허용
-    public void withdraw(BigDecimal amount) {
+    public void deduct(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("출금액은 0보다 커야 합니다");
+            throw new WalletAmountException("출금액은 0보다 커야 합니다");
         }
 
-        this.balance = this.balance.subtract(amount);
+        //잔고 부족
+        if (balance.compareTo(amount) < 0) {
+            throw new WalletInsufficientBalanceException();
+        }
+
+        balance = balance.subtract(amount);
+    }
+
+    // 판매상품 환불로 인한 출금은 소지금액 음수 허용
+    public void deductByRefund(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new WalletAmountException("출금액은 0보다 커야 합니다");
+        }
+
+        balance = balance.subtract(amount);
     }
 
     //유저가 삭제됐을 경우 연관관계 해제
