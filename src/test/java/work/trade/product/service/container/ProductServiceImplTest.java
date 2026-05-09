@@ -261,7 +261,7 @@ class ProductServiceImplTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        ProductDto updatedDto = productService.updateProduct(product.id(), testUserId, updateDto, null);
+        ProductDto updatedDto = productService.updateProduct(product.id(), testUserId, updateDto, null, null);
         System.out.println("================= [로직 종료] =================");
 
         //업데이트 바로 반영
@@ -291,7 +291,7 @@ class ProductServiceImplTest {
         assertThat(productByRepo.getDescription()).isEqualTo(updateDesc);
 
         //잘못된 id를 update할 경우
-        assertThatThrownBy(() -> productService.updateProduct(1123123L, testUserId, updateDto, null));
+        assertThatThrownBy(() -> productService.updateProduct(1123123L, testUserId, updateDto, null, null));
     }
 
     @Test

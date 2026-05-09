@@ -97,11 +97,11 @@ class productControllerTest {
         return dto;
     }
 
-    private MockMultipartFile getMockMultiPartImage() {
+    private MockMultipartFile getMockMultiPartImage(String matchName, String imgFileName) {
         // 컨트롤러의 @RequestPart(value = "newImages")와 매칭
         return new MockMultipartFile(
-                "newImages",           // 컨트롤러의 @RequestPart(value = "newImages")와 매칭
-                "test-image.jpg",
+                matchName,           // 컨트롤러의 @RequestPart(value = "newImages")와 매칭
+                imgFileName,
                 MediaType.IMAGE_JPEG_VALUE,
                 "test image content".getBytes()
         );
@@ -123,25 +123,42 @@ class productControllerTest {
     @DisplayName("판매 상품 생성 - POST /api/products")
     void createProduct() throws Exception {
         //given
-        ProductCreateRequestDto dto = getProductCreateRequestDto();
+        //image 파트 생성
+        MockMultipartFile mockMultiPartImage1 = getMockMultiPartImage("newImages", "test_image.jpg");
+        MockMultipartFile mockMultiPartImage2 = getMockMultiPartImage("newImages", "test_image2.jpg");
+        MockMultipartFile mockMultiPartThumbnail = getMockMultiPartImage("thumbnail", "test_thumbnail.jpg");
 
+        //JSON 파트 생성
+        ProductCreateRequestDto createRequestDto = getProductCreateRequestDto();
+        String dtoString = objectMapper.writeValueAsString(createRequestDto);
+        MockMultipartFile dtoPart = getMockMultiPartDto(dtoString);
 
         //when, then
         //토큰 없을 시 인증 실패
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/api/products")
+                        .file(dtoPart)
+                        .file(mockMultiPartImage1)
+                        .file(mockMultiPartImage2)
+                        .file(mockMultiPartThumbnail)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
 
         //토큰 인증 성공
-        MvcResult result = mockMvc.perform(post("/api/products")
+        MvcResult result = mockMvc.perform(multipart( "/api/products")
+                        .file(dtoPart)
+                        .file(mockMultiPartImage1)
+                        .file(mockMultiPartImage2)
+                        .file(mockMultiPartThumbnail)
                         .header("Authorization", "Bearer " + testUserToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("testProductName"))
                 .andExpect(jsonPath("$.price").value(111))
                 .andExpect(jsonPath("$.seller.id").value(testUserId))
+                // 썸네일 검증
+                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("test_thumbnail.jpg")))
                 .andReturn();
 
         //생성 확인
@@ -171,23 +188,24 @@ class productControllerTest {
     @DisplayName("상품 수정 - PUT /api/products/{id}")
     void updateProduct() throws Exception {
         // 1. Given: 수정할 데이터 준비 (DTO)
-        MockMultipartFile mockMultiPartImage1 = getMockMultiPartImage();
-        MockMultipartFile mockMultiPartImage2 = getMockMultiPartImage();
+        MockMultipartFile mockMultiPartImage1 = getMockMultiPartImage("newImages", "test_image1.jpg");
+        MockMultipartFile mockMultiPartImage2 = getMockMultiPartImage("newImages", "test_image2.jpg");
+        MockMultipartFile mockMultiPartThumbnail = getMockMultiPartImage("thumbnail", "test_old_thumbnail.jpg");
         List<MultipartFile> newImages = List.of(mockMultiPartImage1, mockMultiPartImage2);
 
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
-        ProductDto product = productService.createProduct(productCreateRequestDto, testUserId, newImages);
+        ProductDto product = productService.createProduct(productCreateRequestDto, testUserId, mockMultiPartThumbnail, newImages);
 
         //생성된 이미지들의 id 목록
-        List<Long> imageIds = product.images().stream().
+        List<Long> deleteImageIds = product.images().stream().
                 map(ProductImageDto::id).collect(Collectors.toList());
-        if (product.thumbnail().id() != null) {
-            imageIds.add(product.thumbnail().id());
+        if (product.thumbnail() != null) {
+            deleteImageIds.add(product.thumbnail().id());
         }
 
         ProductUpdateDto updateDto = new ProductUpdateDto(
                 2L, "updateName", "updateDescription",
-                null, null, imageIds);
+                null, null, deleteImageIds);
 
         // DTO를 JSON 문자열로 변환
         String dtoString = objectMapper.writeValueAsString(updateDto);
@@ -196,12 +214,14 @@ class productControllerTest {
         MockMultipartFile dtoPart = getMockMultiPartDto(dtoString);
 
         // 이미지 파일 파트 생성
-        MockMultipartFile imagePart = getMockMultiPartImage();
+        MockMultipartFile newImagePart = getMockMultiPartImage("newImages", "test_image3.jpg");
+        MockMultipartFile newThumbnail = getMockMultiPartImage("thumbnail", "test_newThumbnail.jpg");
 
         // 2. When & Then: 요청 보내기
         mockMvc.perform(multipart(HttpMethod.PATCH, "/api/products/{productId}", 1L) // PATCH 메서드 명시
                         .file(dtoPart)
-                        .file(imagePart)
+                        .file(newImagePart)
+                        .file(newThumbnail)
                         .header("Authorization", "Bearer " + testUserToken)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaType.APPLICATION_JSON))
@@ -212,10 +232,9 @@ class productControllerTest {
                 .andExpect(jsonPath("$.stock").value(product.stock()))
                 .andExpect(jsonPath("$.seller.id").value(testUserId))
                 // 썸네일 검증
-                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("test-image.jpg")))
-
+                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("newThumbnail.jpg")))
                 // 기존 ID가 정말 없는지 더 확실하게 하려면 (필요시)
-                .andExpect(jsonPath("$.images[?(@.id in %s)]", imageIds).isEmpty());
+                .andExpect(jsonPath("$.images[?(@.id in %s)]", deleteImageIds).isEmpty());
     }
 
     @Test

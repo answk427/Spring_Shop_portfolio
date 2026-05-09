@@ -36,11 +36,12 @@ public class ProductController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductDto> createProduct(
             @RequestPart(value = "dto") @Valid ProductCreateRequestDto dto,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> images,
             Authentication authentication) throws FileUploadException {
         Long sellerId = Long.parseLong(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(productService.createProduct(dto, sellerId, images));
+                .body(productService.createProduct(dto, sellerId, thumbnail, images));
     }
 
     //상품 조회
@@ -55,10 +56,11 @@ public class ProductController {
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable("id") Long productId,
             @RequestPart(value = "dto") @Valid ProductUpdateDto dto,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
             Authentication authentication) throws FileUploadException {
         Long sellerId = Long.parseLong(authentication.getName());
-        return ResponseEntity.ok(productService.updateProduct(productId, sellerId, dto, newImages));
+        return ResponseEntity.ok(productService.updateProduct(productId, sellerId, dto, thumbnail, newImages));
     }
 
     //상품 삭제

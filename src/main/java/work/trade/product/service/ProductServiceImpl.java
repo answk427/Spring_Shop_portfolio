@@ -49,30 +49,23 @@ public class ProductServiceImpl implements ProductService {
 
 //*******************************//
 
-    private void saveProductImages(Product product, List<MultipartFile> images) throws FileUploadException {
-        for (int i = 0; i < images.size(); ++i) {
-            MultipartFile imageFile = images.get(i);
+    private void saveProductImage(Product product, MultipartFile imageFile, boolean isThumbnail, int displayOrder) throws FileUploadException {
+        String imageUrl = fileUploadService.uploadFile(imageFile, "products");
 
-            //첫번째파일이 섬네일
-            boolean isThumbnail = (i == 0);
+        ProductImage productImage = ProductImage.builder()
+                .thumbnail(isThumbnail)
+                .imageUrl(imageUrl)
+                .displayOrder(displayOrder)
+                .build();
 
-            String imageUrl = fileUploadService.uploadFile(imageFile, "products");
-
-            ProductImage productImage = ProductImage.builder()
-                    .thumbnail(isThumbnail)
-                    .imageUrl(imageUrl)
-                    .displayOrder(i)
-                    .build();
-
-            //연관관계 설정
-            product.addProductImage(productImage);
-        }
+        //연관관계 설정
+        product.addProductImage(productImage);
     }
 
 //*******************************//
 
     @Override
-    public ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId, List<MultipartFile> images) throws FileUploadException {
+    public ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId, MultipartFile thumbnail, List<MultipartFile> images) throws FileUploadException {
         log.info("Start createProductWithImage sellerId: {}, productName: {}", sellerId, dto.getName());
         User seller = userRepository.findById(sellerId).orElseThrow(() -> new UserNotFoundException());
 
@@ -80,9 +73,15 @@ public class ProductServiceImpl implements ProductService {
 
         //Product 생성
         Product product = mapper.toEntity(dto, seller, category);
-        //이미지 저장
+        //썸네일 우선 저장
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            saveProductImage(product, thumbnail, true, 0);
+        }
+        //나머지 이미지 저장
         if (images != null && !images.isEmpty()) {
-            saveProductImages(product, images);
+            for (int i = 0; i < images.size(); ++i) {
+                saveProductImage(product, images.get(i), false, i+1);
+            }
         }
         //Product 저장과 동시에 이미지도 저장(cascade)
         Product savedProduct = productRepository.save(product);
@@ -131,7 +130,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDto updateProduct(Long productId, Long sellerId, ProductUpdateDto dto, List<MultipartFile> newImages) throws FileUploadException {
+    public ProductDto updateProduct(Long productId, Long sellerId, ProductUpdateDto dto, MultipartFile thumbnail, List<MultipartFile> newImages) throws FileUploadException {
         log.info("Start update Product. sellerId: {}, productId: {}", sellerId, productId);
         Product product = productRepository.findByIdFetchJoin(productId).orElseThrow(() -> new ProductNotFoundException());
 
@@ -155,39 +154,24 @@ public class ProductServiceImpl implements ProductService {
         // 기존 이미지 삭제
         if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
             List<ProductImageDto> oldImages = productImageService.getDetailImagesList(productId, dto.getDeleteImageIds());
-            //todo:List로 한번에 처리 가능하다면 추후수정
             //실제 저장된 파일 삭제
             for (ProductImageDto imageDto : oldImages) {
                 fileUploadService.deleteFile(imageDto.imageUrl());
             }
-            //DB 레코드 삭제
-//            productImageService.deleteInBatch(oldImages.stream()
-//                            .map(ProductImageDto::id)
-//                            .toList());
 
             //연관관계 삭제
             product.getProductImages()
                     .removeIf(img -> dto.getDeleteImageIds().contains(img.getId()));
         }
 
+        //썸네일 추가
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            saveProductImage(product, thumbnail, true, 0);
+        }
         // 새로운 이미지 추가
         if (newImages != null && !newImages.isEmpty()) {
             for (int i=0; i<newImages.size(); ++i) {
-                //파일 저장
-                MultipartFile image = newImages.get(i);
-                String url = fileUploadService.uploadFile(image, "products");
-
-                boolean isThumbnail = product.getProductImages().isEmpty();
-                //DB 레코드 저장
-                ProductImage newImg = ProductImage.builder()
-                        .thumbnail(isThumbnail)
-                        .imageUrl(url)
-                        .product(product)
-                        .displayOrder(i)
-                        .build();
-
-                //연관관계 설정
-                product.addProductImage(newImg);
+                saveProductImage(product, newImages.get(i), false, i + 1);
             }
         }
 

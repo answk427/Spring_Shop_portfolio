@@ -15,7 +15,7 @@ import java.util.List;
 public interface ProductService {
 
     //CRUD
-    ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId, List<MultipartFile> images) throws FileUploadException;
+    ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId, MultipartFile thumbnail, List<MultipartFile> images) throws FileUploadException;
     ProductDto createProduct(ProductCreateRequestDto dto, Long sellerId);
 
     ProductDto findProduct(Long id);
@@ -23,7 +23,7 @@ public interface ProductService {
     Page<ProductSummaryDto> findProductsByCategory(Pageable pageable, Long categoryId);
     Page<ProductSummaryDto> findProductsBySellerId(Pageable pageable, Long sellerId);
 
-    ProductDto updateProduct(Long productId, Long sellerId, ProductUpdateDto dto, List<MultipartFile> newImages) throws FileUploadException;
+    ProductDto updateProduct(Long productId, Long sellerId, ProductUpdateDto dto, MultipartFile thumbnail, List<MultipartFile> newImages) throws FileUploadException;
     void deleteById(Long id, Long sellerId);
 
     Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable);
