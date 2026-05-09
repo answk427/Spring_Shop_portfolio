@@ -86,7 +86,7 @@ class ProductMapperTest {
         Long oldId = product.getId();
 
         ProductUpdateDto dto = new ProductUpdateDto(
-                1311L, "테스트 dto", "업데이트 설명", BigDecimal.valueOf(1311), 111);
+                1311L, "테스트 dto", "업데이트 설명", BigDecimal.valueOf(1311), 111, null);
 
         //when
         product.updateFromDto(dto, product.getCategory());

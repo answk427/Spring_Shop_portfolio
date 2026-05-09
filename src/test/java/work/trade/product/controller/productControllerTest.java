@@ -3,6 +3,7 @@ package work.trade.product.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,10 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,6 +26,7 @@ import work.trade.auth.role.Role;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
+import work.trade.product.dto.response.ProductImageDto;
 import work.trade.product.repository.CategoryRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.dto.request.UserCreateRequestDto;
@@ -29,7 +34,9 @@ import work.trade.user.dto.response.UserDto;
 import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -90,6 +97,26 @@ class productControllerTest {
         return dto;
     }
 
+    private MockMultipartFile getMockMultiPartImage() {
+        // 컨트롤러의 @RequestPart(value = "newImages")와 매칭
+        return new MockMultipartFile(
+                "newImages",           // 컨트롤러의 @RequestPart(value = "newImages")와 매칭
+                "test-image.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "test image content".getBytes()
+        );
+    }
+
+    private MockMultipartFile getMockMultiPartDto(String dtoString) {
+        // 컨트롤러의 @RequestPart(value = "dto")와 매칭
+        return new MockMultipartFile(
+                "dto",
+                "dto",
+                MediaType.APPLICATION_JSON_VALUE,
+                dtoString.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
 //*******************************//
 
     @Test
@@ -97,6 +124,7 @@ class productControllerTest {
     void createProduct() throws Exception {
         //given
         ProductCreateRequestDto dto = getProductCreateRequestDto();
+
 
         //when, then
         //토큰 없을 시 인증 실패
@@ -142,24 +170,52 @@ class productControllerTest {
     @Test
     @DisplayName("상품 수정 - PUT /api/products/{id}")
     void updateProduct() throws Exception {
-        //given
+        // 1. Given: 수정할 데이터 준비 (DTO)
+        MockMultipartFile mockMultiPartImage1 = getMockMultiPartImage();
+        MockMultipartFile mockMultiPartImage2 = getMockMultiPartImage();
+        List<MultipartFile> newImages = List.of(mockMultiPartImage1, mockMultiPartImage2);
+
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
-        ProductDto product = productService.createProduct(productCreateRequestDto, testUserId);
+        ProductDto product = productService.createProduct(productCreateRequestDto, testUserId, newImages);
+
+        //생성된 이미지들의 id 목록
+        List<Long> imageIds = product.images().stream().
+                map(ProductImageDto::id).collect(Collectors.toList());
+        if (product.thumbnail().id() != null) {
+            imageIds.add(product.thumbnail().id());
+        }
 
         ProductUpdateDto updateDto = new ProductUpdateDto(
-                null, "updateName", "updateDescription", null, null);
+                2L, "updateName", "updateDescription",
+                null, null, imageIds);
 
-        //when, then
-        mockMvc.perform(put("/api/products/" + product.id().toString())
+        // DTO를 JSON 문자열로 변환
+        String dtoString = objectMapper.writeValueAsString(updateDto);
+
+        // JSON 파트 생성 (MockMultipartFile 이용)
+        MockMultipartFile dtoPart = getMockMultiPartDto(dtoString);
+
+        // 이미지 파일 파트 생성
+        MockMultipartFile imagePart = getMockMultiPartImage();
+
+        // 2. When & Then: 요청 보내기
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/api/products/{productId}", 1L) // PATCH 메서드 명시
+                        .file(dtoPart)
+                        .file(imagePart)
                         .header("Authorization", "Bearer " + testUserToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDto)))
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("updateName"))
                 .andExpect(jsonPath("$.description").value("updateDescription"))
                 .andExpect(jsonPath("$.price").value(product.price().doubleValue()))
                 .andExpect(jsonPath("$.stock").value(product.stock()))
-                .andExpect(jsonPath("$.seller.id").value(testUserId));
+                .andExpect(jsonPath("$.seller.id").value(testUserId))
+                // 썸네일 검증
+                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("test-image.jpg")))
+
+                // 기존 ID가 정말 없는지 더 확실하게 하려면 (필요시)
+                .andExpect(jsonPath("$.images[?(@.id in %s)]", imageIds).isEmpty());
     }
 
     @Test
@@ -169,7 +225,7 @@ class productControllerTest {
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
         ProductDto product = productService.createProduct(productCreateRequestDto, testUserId);
 
-        ProductUpdateDto updateDto = new ProductUpdateDto(null, "updateName", "updateDescription", null, null);
+        ProductUpdateDto updateDto = new ProductUpdateDto(null, "updateName", "updateDescription", null, null, null);
 
         //when, then
         mockMvc.perform(delete("/api/products/" + product.id().toString())

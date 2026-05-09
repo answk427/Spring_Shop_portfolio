@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
+import work.trade.product.domain.QProductImage;
 import work.trade.product.dto.response.ProductSummaryDto;
 
 import java.util.List;
@@ -52,6 +55,16 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
     @Override
     public Page<ProductSummaryDto> findProductsWithPagination(Pageable pageable, Long categoryId, Long sellerId) {
+        //서브쿼리 구분 위해 객체 생성
+        QProductImage subImage = new QProductImage("subImage");
+
+        JPQLQuery<String> thumbnailSubQuery = JPAExpressions
+                .select(subImage.imageUrl)
+                .from(subImage)
+                .where(subImage.product.eq(product)
+                        .and(subImage.thumbnail.isTrue()))
+                .limit(1);
+
         // 데이터 조회 (Select절에서 바로 DTO 가져오기)
         List<ProductSummaryDto> content = queryFactory
                 .select(Projections.constructor(ProductSummaryDto.class,
@@ -61,6 +74,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                         product.stock,       // 4. Integer stock
                         category.name,       // 5. String categoryName
                         user.name,           // 6. String sellerName
+                        Expressions.asString(thumbnailSubQuery).coalesce("default.png"),
                         product.createdAt    // 7. LocalDateTime createdAt
                 ))
                 .from(product)
@@ -85,6 +99,16 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
     @Override
     public Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable) {
+        //서브쿼리 구분 위해 객체 생성
+        QProductImage subImage = new QProductImage("subImage");
+
+        JPQLQuery<String> thumbnailSubQuery = JPAExpressions
+                .select(subImage.imageUrl)
+                .from(subImage)
+                .where(subImage.product.eq(product)
+                        .and(subImage.thumbnail.isTrue()))
+                .limit(1);
+
         List<ProductSummaryDto> content = queryFactory
                 .select(Projections.constructor(ProductSummaryDto.class,
                         product.id,          // 1. Long id
@@ -93,6 +117,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                         product.stock,       // 4. Integer stock
                         category.name,       // 5. String categoryName
                         user.name,           // 6. String sellerName
+                        Expressions.asString(thumbnailSubQuery).coalesce("default.png"),
                         product.createdAt    // 7. LocalDateTime createdAt
                 ))
                 .from(product)

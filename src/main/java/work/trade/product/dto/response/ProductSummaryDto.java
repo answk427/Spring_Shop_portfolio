@@ -10,6 +10,7 @@ public record ProductSummaryDto(
         Integer stock,
         String categoryName,
         String sellerName,
+        String thumbnailUrl,
         LocalDateTime createdAt
 ) {
 
