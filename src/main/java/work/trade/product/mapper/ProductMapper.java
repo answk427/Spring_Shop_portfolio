@@ -3,6 +3,7 @@ package work.trade.product.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.domain.ProductImage;
@@ -20,7 +21,10 @@ import java.util.List;
                 CategoryMapper.class,
                 UserMapper.class,
                 ProductImageMapper.class})
-public interface ProductMapper {
+public abstract class ProductMapper {
+
+    @Autowired // 생성자 대신 필드 주입
+    protected ProductImageMapper imageMapper;
 
     //Request -> Entity
 //-------------------------------------//
@@ -31,34 +35,39 @@ public interface ProductMapper {
     @Mapping(target = "seller", source = "seller") // 두 번째 인자 User 객체 통째로
     @Mapping(target = "category", source = "category")
     // 세 번째 인자 Category 객체 통째로
-    Product toEntity(ProductCreateRequestDto dto, User seller, Category category);
+    public abstract Product toEntity(ProductCreateRequestDto dto, User seller, Category category);
 
     //Entity -> Response
 //-------------------------------------//
     @Mapping(target = "thumbnail", source = ".", qualifiedByName = "toThumbnail")
     @Mapping(target = "images", source = ".", qualifiedByName = "toImages")
-    ProductDto toDto(Product product);
+    public abstract ProductDto toDto(Product product);
 
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "sellerName", source = "seller.name")
-    ProductSummaryDto toSummaryDto(Product product);
+    @Mapping(target = "thumbnailUrl", source = ".", qualifiedByName = "toThumbnailUrl")
+    public abstract ProductSummaryDto toSummaryDto(Product product);
 
     @Named("toThumbnail")
-    default ProductImageDto toThumbnail(Product product) {
+    protected ProductImageDto toThumbnail(Product product) {
         return product.getProductImages().stream()
                 .filter(ProductImage::getThumbnail)
                 .findFirst()
-                .map(this::mapImage)
+                .map(imageMapper::toDto)
                 .orElse(null);
     }
 
-    @Named("toImages")
-    default List<ProductImageDto> toImages(Product product) {
-        return product.getProductImages().stream()
-                .filter(img -> !img.getThumbnail())
-                .map(this::mapImage)
-                .toList();
+    @Named("toThumbnailUrl")
+    protected String toThumbnailUrl(Product product) {
+        ProductImageDto thumbnail = toThumbnail(product);
+        return thumbnail != null ? thumbnail.imageUrl() : null;
     }
 
-    ProductImageDto mapImage(ProductImage image);
+    @Named("toImages")
+    protected List<ProductImageDto> toImages(Product product) {
+        return product.getProductImages().stream()
+                .filter(img -> !img.getThumbnail())
+                .map(imageMapper::toDto)
+                .toList();
+    }
 }

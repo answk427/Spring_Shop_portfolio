@@ -32,6 +32,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
     Optional<Product> findByIdFetchJoin(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p from Product p join fetch p.category join fetch p.seller where p.id in :ids")
+    @Query("SELECT p from Product p join fetch p.category join fetch p.seller left join fetch p.productImages where p.id in :ids")
     List<Product> findAllByIdWithLock(@Param("ids") List<Long> ids);
 }

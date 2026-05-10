@@ -7,5 +7,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileUploadService {
     public String uploadFile(MultipartFile file, String folder) throws FileUploadException;
 
-    void deleteFile(String imageUrl);
+      void deleteFile(String filePath);
 }

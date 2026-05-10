@@ -48,3 +48,7 @@ jwt:
 
 cors:
   allowed-origins: http://localhost:3000
+
+file:
+  display:
+    prefix: "http://test-server/display?filename="

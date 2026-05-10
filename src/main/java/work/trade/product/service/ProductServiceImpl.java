@@ -50,11 +50,11 @@ public class ProductServiceImpl implements ProductService {
 //*******************************//
 
     private void saveProductImage(Product product, MultipartFile imageFile, boolean isThumbnail, int displayOrder) throws FileUploadException {
-        String imageUrl = fileUploadService.uploadFile(imageFile, "products");
+        String imagePath = fileUploadService.uploadFile(imageFile, "products");
 
         ProductImage productImage = ProductImage.builder()
                 .thumbnail(isThumbnail)
-                .imageUrl(imageUrl)
+                .imageUrl(imagePath)
                 .displayOrder(displayOrder)
                 .build();
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,11 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+        name = "file.storage.type",
+        havingValue = "local",
+        matchIfMissing = true
+)
 public class LocalFileUploadService implements FileUploadService {
 
     @Value("${file.upload.dir:uploads}")
@@ -34,10 +40,10 @@ public class LocalFileUploadService implements FileUploadService {
             File destinationFile = new File(directory, filename);
             file.transferTo(destinationFile);
 
-            String imageUrl = "/" + folder + "/" + filename;
-            log.info("Local file uploaded: {}", imageUrl);
+            String imagePath = folder + "/" + filename;
+            log.info("Local file uploaded: {}", imagePath);
 
-            return imageUrl;
+            return imagePath;
         } catch (IOException e) {
             throw new FileUploadException("파일 업로드 실패: " + e.getMessage());
         }
