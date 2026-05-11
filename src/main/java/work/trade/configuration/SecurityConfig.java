@@ -53,6 +53,7 @@ public class SecurityConfig {
                 // 페이지별 출입 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
