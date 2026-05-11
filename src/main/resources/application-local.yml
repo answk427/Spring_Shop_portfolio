@@ -12,3 +12,11 @@ spring:
 
 cors:
   allowed-origins: http://localhost:3000
+
+file:
+  storage:
+    type: local
+  upload:
+    dir: uploads
+  display:
+    prefix: "http://localhost:8080/display?filename="

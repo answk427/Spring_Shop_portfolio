@@ -8,11 +8,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductUpdateDto {
+
+    public ProductUpdateDto(Long categoryId, String name, String description, BigDecimal price, Integer stock) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stock = stock;
+    }
 
     private Long categoryId;
 
@@ -27,4 +36,6 @@ public class ProductUpdateDto {
 
     @Min(value = 0, message = "재고는 0 이상이어야 합니다.")
     private Integer stock;
+
+    private List<Long> deleteImageIds;
 }

@@ -1,13 +1,18 @@
 package work.trade.product.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import work.trade.order.exception.InsufficientStockException;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.user.domain.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -50,6 +55,10 @@ public class Product {
 
     @Column(nullable = false)
     private Integer stock;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<ProductImage> productImages = new ArrayList<>();
 
     //레코드 생성/업데이트 시 자동갱신
     @Column(name = "created_at", insertable = false, updatable = false)
@@ -105,4 +114,8 @@ public class Product {
         return this.stock >= quantity;
     }
 
+    public void addProductImage(ProductImage img) {
+        productImages.add(img);
+        img.setProduct(this);
+    }
 }

@@ -1,6 +1,7 @@
 package work.trade.product.service.container;
 
 import jakarta.persistence.EntityManager;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +15,14 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
+import work.trade.product.domain.ProductImage;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.CategoryDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.product.repository.CategoryRepository;
+import work.trade.product.repository.ProductImageRepository;
 import work.trade.product.repository.ProductRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.domain.User;
@@ -53,6 +56,8 @@ class ProductServiceImplTest {
     private ProductRepository productRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private ProductImageRepository productImageRepository;
 
     @Autowired
     private ProductService productService;
@@ -103,9 +108,20 @@ class ProductServiceImplTest {
     }
 
     @Transactional
-    private ProductDto createTestProduct(String name, BigDecimal price, int stock, Long categoryId, Long userId, String description) {
+    private ProductDto createTestProduct(String name, BigDecimal price, int stock, Long categoryId, Long userId, String description, String url) {
         ProductCreateRequestDto dto = new ProductCreateRequestDto(categoryId, name, description, price, stock);
         ProductDto productDto = productService.createProduct(dto, userId);
+
+        //테스트용 상품이미지 생성
+        ProductImage image = ProductImage
+                .builder()
+                .imageUrl(url)
+                .product(productRepository.findById(productDto.id()).get())
+                .thumbnail(true)
+                .displayOrder(0).build();
+
+        productImageRepository.save(image);
+
         em.flush(); // DB에 반영
         em.clear(); // 1차 캐시 비우기 (실제 DB 조회 테스트를 위해)
 
@@ -118,7 +134,7 @@ class ProductServiceImplTest {
         final int productStock = 12123;
         final String productDescription = "테스트 제품 설명";
 
-        return createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription);
+        return createTestProduct(productName, productPrice, productStock, testCategoryId, testUserId, productDescription, "default.jpg");
     }
 
 //*******************************//
@@ -223,12 +239,12 @@ class ProductServiceImplTest {
         assertThat(dtoCategory.parentName()).isEqualTo(productDto.category().parentName());
 
         //존재하지 않는 ID 조회 테스트
-        assertThatThrownBy(()->productService.findProduct(99999L));
+        assertThatThrownBy(() -> productService.findProduct(99999L));
     }
 
     @Test
     @Transactional
-    void updateProduct() {
+    void updateProduct() throws FileUploadException {
         //given
         ProductDto createdProduct = createTestProduct();
         ProductDto product = productService.findProduct(createdProduct.id());
@@ -238,14 +254,14 @@ class ProductServiceImplTest {
         final int updateStock = 2222;
         final String updateDesc = "Update Description";
 
-        ProductUpdateDto updateDto = new ProductUpdateDto(testCategoryId1, updateName, updateDesc, updatePrice, updateStock);
+        ProductUpdateDto updateDto = new ProductUpdateDto(testCategoryId1, updateName, updateDesc, updatePrice, updateStock, null);
 
         //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
         //when
         System.out.println("================= [로직 시작] =================");
-        ProductDto updatedDto = productService.updateProduct(updateDto, product.id(), testUserId);
+        ProductDto updatedDto = productService.updateProduct(product.id(), testUserId, updateDto, null, null);
         System.out.println("================= [로직 종료] =================");
 
         //업데이트 바로 반영
@@ -275,7 +291,7 @@ class ProductServiceImplTest {
         assertThat(productByRepo.getDescription()).isEqualTo(updateDesc);
 
         //잘못된 id를 update할 경우
-        assertThatThrownBy(()->productService.updateProduct(updateDto, 1123123L, testUserId));
+        assertThatThrownBy(() -> productService.updateProduct(1123123L, testUserId, updateDto, null, null));
     }
 
     @Test
@@ -293,7 +309,7 @@ class ProductServiceImplTest {
         System.out.println("================= [로직 종료] =================");
 
         //then
-        assertThatThrownBy(()->productService.findProduct(product.id()));
+        assertThatThrownBy(() -> productService.findProduct(product.id()));
     }
 
     @Test
@@ -302,7 +318,9 @@ class ProductServiceImplTest {
         //given
         ProductDto product = createTestProduct();
         ProductDto product1 = createTestProduct(
-                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
+                "product2", BigDecimal.valueOf(2000),
+                20, testCategoryId, testUserId,
+                "Product2 Desc", "product/test/image.jpg");
 
         //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
@@ -312,7 +330,6 @@ class ProductServiceImplTest {
         Page<ProductSummaryDto> products = productService.findProducts(PageRequest.of(0, 10));
         System.out.println("================= [로직 종료] =================");
 
-
         //then
         assertThat(products).isNotNull();
         assertThat(products.getTotalElements()).isEqualTo(2); // 전체 데이터 개수 (count 쿼리 결과)
@@ -320,6 +337,10 @@ class ProductServiceImplTest {
         assertThat(products.getNumber()).isEqualTo(0);         // 현재 페이지 번호 (0부터 시작)
         assertThat(products.getTotalPages()).isEqualTo(1);     // 전체 페이지 수
         assertThat(products.hasNext()).isFalse();              // 다음 페이지가 있는지 여부
+
+        //image url 검증
+        assertThat(products.getContent().get(0).thumbnailUrl()).isEqualTo("default.jpg");
+        assertThat(products.getContent().get(1).thumbnailUrl()).isEqualTo("product/test/image.jpg");
 
         //[로직 시작]과 [로직 종료] 사이에서 join Query 1번, count Query 1번 나갔는지 로그 확인
     }
@@ -330,9 +351,11 @@ class ProductServiceImplTest {
         //given
         ProductDto product = createTestProduct();
         ProductDto product1 = createTestProduct(
-                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
+                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId,
+                "Product2 Desc", "product/image/testProduct1");
         ProductDto product2 = createTestProduct(
-                "product3", BigDecimal.valueOf(3000), 30, testCategoryId + 1, testUserId, "Product3 Desc");
+                "product3", BigDecimal.valueOf(3000), 30, testCategoryId + 1, testUserId,
+                "Product3 Desc", "product/image/testProduct2");
 
         //N+1 문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
@@ -364,9 +387,11 @@ class ProductServiceImplTest {
         //given
         ProductDto product = createTestProduct();
         ProductDto product1 = createTestProduct(
-                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId, "Product2 Desc");
+                "product2", BigDecimal.valueOf(2000), 20, testCategoryId, testUserId,
+                "Product2 Desc", "product/image/testProduct1");
         ProductDto productOtherSeller = createTestProduct(
-                "product3", BigDecimal.valueOf(3000), 30, testCategoryId, testUserId1, "Product3 Desc");
+                "product3", BigDecimal.valueOf(3000), 30, testCategoryId, testUserId1,
+                "Product3 Desc", "product/image/testProduct2");
 
         em.clear();
         //when

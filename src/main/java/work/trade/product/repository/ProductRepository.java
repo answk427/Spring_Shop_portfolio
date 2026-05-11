@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import work.trade.product.domain.Product;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,10 +27,15 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
     @Query("select p from Product p " +
             "join fetch p.seller " +
             "join fetch p.category " +
+            "left join fetch p.productImages " +
             "where p.id = :id")
     Optional<Product> findByIdFetchJoin(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p from Product p join fetch p.category join fetch p.seller where p.id in :ids")
+    @Query("SELECT p from Product p " +
+            "join fetch p.category " +
+            "join fetch p.seller " +
+            "left join fetch p.productImages " +
+            "where p.id in :ids")
     List<Product> findAllByIdWithLock(@Param("ids") List<Long> ids);
 }
