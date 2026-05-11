@@ -260,3 +260,4 @@ out/
 /src/main/generated/work/trade/wallet/domain/QAccountRecordType.java
 /src/main/generated/work/trade/wallet/domain/QWallet.java
 /src/main/generated/work/trade/wallet/mapper/WalletMapperImpl.java
+/.env
