@@ -108,7 +108,7 @@ class ProductServiceImplTest {
     }
 
     @Transactional
-    private ProductDto createTestProduct(String name, BigDecimal price, int stock, Long categoryId, Long userId, String description, String url) {
+    protected ProductDto createTestProduct(String name, BigDecimal price, int stock, Long categoryId, Long userId, String description, String url) {
         ProductCreateRequestDto dto = new ProductCreateRequestDto(categoryId, name, description, price, stock);
         ProductDto productDto = productService.createProduct(dto, userId);
 
