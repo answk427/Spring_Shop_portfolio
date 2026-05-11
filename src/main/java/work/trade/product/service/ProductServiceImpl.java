@@ -15,7 +15,6 @@ import work.trade.product.domain.ProductImage;
 import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
-import work.trade.product.dto.response.ProductImageDto;
 import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.product.exception.CategoryNotFoundException;
 import work.trade.product.exception.ProductNotEqualSeller;
@@ -153,10 +152,10 @@ public class ProductServiceImpl implements ProductService {
 
         // 기존 이미지 삭제
         if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
-            List<ProductImageDto> oldImages = productImageService.getDetailImagesList(productId, dto.getDeleteImageIds());
+            List<String> oldImagePaths = productImageService.getImagePathList(productId, dto.getDeleteImageIds());
             //실제 저장된 파일 삭제
-            for (ProductImageDto imageDto : oldImages) {
-                fileUploadService.deleteFile(imageDto.imageUrl());
+            for (String imagePath : oldImagePaths) {
+                fileUploadService.deleteFile(imagePath);
             }
 
             //연관관계 삭제

@@ -1,0 +1,3 @@
+file:
+  display:
+    prefix: "http://test-server/display?filename="

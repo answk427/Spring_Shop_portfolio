@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: test
+    active: local
 
   datasource:
     url: jdbc:mysql://localhost:3307/trade_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -48,7 +48,3 @@ jwt:
 
 cors:
   allowed-origins: http://localhost:3000
-
-file:
-  display:
-    prefix: "http://test-server/display?filename="

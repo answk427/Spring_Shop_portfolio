@@ -173,15 +173,28 @@ class productControllerTest {
     @DisplayName("상품 조회(로그인 필요X) - GET /api/products/{id}")
     void getProduct() throws Exception {
         //given
+        MockMultipartFile mockMultiPartImage1 = getMockMultiPartImage("newImages", "getProductImage.jpg");
+        MockMultipartFile mockMultiPartImage2 = getMockMultiPartImage("newImages", "getProductImage22222.jpg");
+        MockMultipartFile mockMultiPartThumbnail = getMockMultiPartImage("thumbnail", "test_imageMyThumbnail.jpg");
+
         ProductCreateRequestDto dto = getProductCreateRequestDto();
-        ProductDto product = productService.createProduct(dto, testUserId);
+        ProductDto product = productService.createProduct(dto, testUserId,
+                mockMultiPartThumbnail, List.of(mockMultiPartImage1, mockMultiPartImage2));
 
         //when, then
-        mockMvc.perform(get("/api/products/" + product.id().toString()))
+        MvcResult result = mockMvc.perform(get("/api/products/" + product.id().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("testProductName"))
                 .andExpect(jsonPath("$.price").value(111))
-                .andExpect(jsonPath("$.seller.id").value(testUserId));
+                .andExpect(jsonPath("$.seller.id").value(testUserId))
+                .andExpect(jsonPath("$.images[0].imageUrl").value(Matchers.containsString("getProductImage.jpg")))
+                .andExpect(jsonPath("$.images[1].imageUrl").value(Matchers.containsString("getProductImage22222.jpg")))
+                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("Thumbnail.jpg")))
+                .andReturn();
+
+        //생성 확인
+        String responseBody = result.getResponse().getContentAsString();
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
     }
 
     @Test
@@ -196,7 +209,7 @@ class productControllerTest {
         ProductCreateRequestDto productCreateRequestDto = getProductCreateRequestDto();
         ProductDto product = productService.createProduct(productCreateRequestDto, testUserId, mockMultiPartThumbnail, newImages);
 
-        //생성된 이미지들의 id 목록
+        //삭제할 이미지들의 id 목록
         List<Long> deleteImageIds = product.images().stream().
                 map(ProductImageDto::id).collect(Collectors.toList());
         if (product.thumbnail() != null) {
