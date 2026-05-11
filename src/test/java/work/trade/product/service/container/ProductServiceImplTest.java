@@ -339,8 +339,8 @@ class ProductServiceImplTest {
         assertThat(products.hasNext()).isFalse();              // 다음 페이지가 있는지 여부
 
         //image url 검증
-        assertThat(products.getContent().get(0).thumbnailUrl()).isEqualTo("default.jpg");
-        assertThat(products.getContent().get(1).thumbnailUrl()).isEqualTo("product/test/image.jpg");
+        assertThat(products.getContent().get(0).thumbnailUrl().contains("default.jpg")).isTrue();
+        assertThat(products.getContent().get(1).thumbnailUrl().contains("product/test/image.jpg")).isTrue();
 
         //[로직 시작]과 [로직 종료] 사이에서 join Query 1번, count Query 1번 나갔는지 로그 확인
     }

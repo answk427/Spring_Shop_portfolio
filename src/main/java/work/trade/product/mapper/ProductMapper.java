@@ -23,7 +23,7 @@ import java.util.List;
                 ProductImageMapper.class})
 public abstract class ProductMapper {
 
-    @Autowired // 생성자 대신 필드 주입
+    @Autowired
     protected ProductImageMapper imageMapper;
 
     //Request -> Entity
