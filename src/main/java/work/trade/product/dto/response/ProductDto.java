@@ -4,7 +4,6 @@ import work.trade.user.dto.response.SellerDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record ProductDto(
         Long id,
@@ -16,8 +15,7 @@ public record ProductDto(
         Integer stock,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        ProductImageDto thumbnail,
-        List<ProductImageDto> images
+        ProductImageDto thumbnail
 ) {
 
 }

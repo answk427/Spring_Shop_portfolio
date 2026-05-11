@@ -14,8 +14,6 @@ import work.trade.product.dto.response.ProductSummaryDto;
 import work.trade.user.domain.User;
 import work.trade.user.mapper.UserMapper;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring",
         uses = {
                 CategoryMapper.class,
@@ -40,7 +38,6 @@ public abstract class ProductMapper {
     //Entity -> Response
 //-------------------------------------//
     @Mapping(target = "thumbnail", source = ".", qualifiedByName = "toThumbnail")
-    @Mapping(target = "images", source = ".", qualifiedByName = "toImages")
     public abstract ProductDto toDto(Product product);
 
     @Mapping(target = "categoryName", source = "category.name")
@@ -61,13 +58,5 @@ public abstract class ProductMapper {
     protected String toThumbnailUrl(Product product) {
         ProductImageDto thumbnail = toThumbnail(product);
         return thumbnail != null ? thumbnail.imageUrl() : null;
-    }
-
-    @Named("toImages")
-    protected List<ProductImageDto> toImages(Product product) {
-        return product.getProductImages().stream()
-                .filter(img -> !img.getThumbnail())
-                .map(imageMapper::toDto)
-                .toList();
     }
 }

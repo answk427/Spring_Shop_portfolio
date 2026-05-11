@@ -18,4 +18,7 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
     Slice<ProductImage> findByProductIdAndThumbnailFalseOrderByDisplayOrderAsc(Long productId, Pageable pageable);
 
     List<ProductImage> findByIdInAndProduct_Id(List<Long> imageIds, Long productId);
+
+    //썸네일이 아닌 상세이미지들 일괄 조회
+    List<ProductImage> findByProductIdAndThumbnailFalse(Long productId);
 }

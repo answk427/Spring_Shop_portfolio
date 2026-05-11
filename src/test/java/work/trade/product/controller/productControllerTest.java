@@ -28,6 +28,7 @@ import work.trade.product.dto.request.ProductUpdateDto;
 import work.trade.product.dto.response.ProductDto;
 import work.trade.product.dto.response.ProductImageDto;
 import work.trade.product.repository.CategoryRepository;
+import work.trade.product.service.ProductImageService;
 import work.trade.product.service.ProductService;
 import work.trade.user.dto.request.UserCreateRequestDto;
 import work.trade.user.dto.response.UserDto;
@@ -74,6 +75,8 @@ class productControllerTest {
 
     private Long testUserId;
     private String testUserToken;
+    @Autowired
+    private ProductImageService productImageService;
 
     @BeforeEach
     void InitData() {
@@ -187,8 +190,6 @@ class productControllerTest {
                 .andExpect(jsonPath("$.name").value("testProductName"))
                 .andExpect(jsonPath("$.price").value(111))
                 .andExpect(jsonPath("$.seller.id").value(testUserId))
-                .andExpect(jsonPath("$.images[0].imageUrl").value(Matchers.containsString("getProductImage.jpg")))
-                .andExpect(jsonPath("$.images[1].imageUrl").value(Matchers.containsString("getProductImage22222.jpg")))
                 .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("Thumbnail.jpg")))
                 .andReturn();
 
@@ -210,8 +211,9 @@ class productControllerTest {
         ProductDto product = productService.createProduct(productCreateRequestDto, testUserId, mockMultiPartThumbnail, newImages);
 
         //삭제할 이미지들의 id 목록
-        List<Long> deleteImageIds = product.images().stream().
-                map(ProductImageDto::id).collect(Collectors.toList());
+        List<Long> deleteImageIds = productImageService.getDetailImagesList(product.id())
+                .stream().map(ProductImageDto::id).collect(Collectors.toList());
+
         if (product.thumbnail() != null) {
             deleteImageIds.add(product.thumbnail().id());
         }
@@ -245,9 +247,7 @@ class productControllerTest {
                 .andExpect(jsonPath("$.stock").value(product.stock()))
                 .andExpect(jsonPath("$.seller.id").value(testUserId))
                 // 썸네일 검증
-                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("newThumbnail.jpg")))
-                // 기존 ID가 정말 없는지 더 확실하게 하려면 (필요시)
-                .andExpect(jsonPath("$.images[?(@.id in %s)]", deleteImageIds).isEmpty());
+                .andExpect(jsonPath("$.thumbnail.imageUrl").value(Matchers.containsString("newThumbnail.jpg")));
     }
 
     @Test
