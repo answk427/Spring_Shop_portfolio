@@ -32,9 +32,16 @@ public class LocalFileUploadService implements FileUploadService {
             String uuid = UUID.randomUUID().toString();
             String filename = uuid + "_" + originalFilename;
 
-            File directory = new File(uploadDir + "/", folder);
+            File directory = new File(uploadDir, folder);
             if (!directory.exists()) {
-                directory.mkdirs();
+                boolean created = directory.mkdirs();
+
+                log.info("directory create result: {}", created);
+                log.info("directory path: {}", directory.getAbsolutePath());
+
+                if (!created) {
+                    throw new FileUploadException("디렉토리 생성 실패");
+                }
             }
 
             File destinationFile = new File(directory, filename);
