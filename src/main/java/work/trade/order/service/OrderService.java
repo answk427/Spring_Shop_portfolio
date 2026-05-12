@@ -138,12 +138,25 @@ public class OrderService {
     //특정 상태의 모든 주문 조회
     @Transactional(readOnly = true)
     public Page<OrderItemSummaryDto> getOrderItemsByStatus(Long userId, String statusCode, Pageable pageable) {
-        OrderStatus status = orderStatusRepository.findById(statusCode)
-                .orElseThrow(() -> new OrderStatusNotFoundException());
+        //유효한 status인지 검사
+        if (statusCode != null) {
+            orderStatusRepository.findById(statusCode)
+                    .orElseThrow(OrderStatusNotFoundException::new);
+        }
 
         return orderItemRepository.findOrderItemsWithPagination(userId, statusCode, pageable);
     }
 
+    //판매자의 모든 주문된 판매상품 조회
+    @Transactional(readOnly = true)
+    public Page<OrderItemSummaryDto> getSellerOrderItemsByStatus(Long sellerId, String statusCode, Pageable pageable) {
+        //유효한 status인지 검사
+        if (statusCode != null) {
+            orderStatusRepository.findById(statusCode)
+                    .orElseThrow(OrderStatusNotFoundException::new);
+        }
+        return orderItemRepository.findSellerOrderItemsWithPagination(sellerId, statusCode, pageable);
+    }
 
 //Order Status 변경 함수*******************************//
 

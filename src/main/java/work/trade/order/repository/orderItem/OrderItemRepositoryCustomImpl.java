@@ -27,44 +27,58 @@ public class OrderItemRepositoryCustomImpl implements OrderItemRepositoryCustom 
 
     @Override
     public Page<OrderItemSummaryDto> findOrderItemsWithPagination(Long buyerId, String statusCode, Pageable pageable) {
+        BooleanExpression condition = order.buyer.id.eq(buyerId)
+                .and(statusEq(statusCode, orderStatus));
+        return executePagedQuery(condition, pageable);
+    }
 
-        JPAQuery<OrderItemSummaryDto> query = queryFactory
-                .select(Projections.constructor(OrderItemSummaryDto.class,
-                        orderItem.id,
-                        orderItem.product.name,
-                        Projections.constructor(OrderStatusDto.class,
-                                orderItem.status.code,
-                                orderItem.status.name,
-                                orderItem.status.description),
-                        orderItem.quantity,
-                        orderItem.subtotalPrice,
-                        orderItem.order.createdAt
-                ))
+    @Override
+    public Page<OrderItemSummaryDto> findSellerOrderItemsWithPagination(Long sellerId, String statusCode, Pageable pageable) {
+        BooleanExpression condition = product.seller.id.eq(sellerId)
+                .and(statusEq(statusCode, orderStatus));
+        return executePagedQuery(condition, pageable);
+    }
+
+    private Page<OrderItemSummaryDto> executePagedQuery(BooleanExpression condition, Pageable pageable) {
+        // 1. 공통 쿼리 정의 (Content와 Count에서 공유할 Join 및 Where)
+        // 판매자 ID 조건을 처리하기 위해 product 조인을 필수로 포함시킵니다.
+        JPAQuery<?> baseQuery = queryFactory
                 .from(orderItem)
                 .join(orderItem.product, product)
                 .join(orderItem.order, order)
                 .join(orderItem.status, orderStatus)
-                .where(order.buyer.id.eq(buyerId),
-                        statusEq(statusCode, orderStatus))
+                .where(condition);
+
+        // 2. Content 쿼리: baseQuery 정보를 기반으로 select/orderBy/offset/limit 추가
+        JPAQuery<OrderItemSummaryDto> contentQuery = baseQuery
+                .select(Projections.constructor(OrderItemSummaryDto.class,
+                        orderItem.id,
+                        product.name,
+                        Projections.constructor(OrderStatusDto.class,
+                                orderStatus.code,
+                                orderStatus.name,
+                                orderStatus.description),
+                        orderItem.quantity,
+                        orderItem.subtotalPrice,
+                        order.createdAt
+                ))
                 .orderBy(order.createdAt.desc());
 
         if (pageable.isPaged()) {
-            query.offset(pageable.getOffset())
+            contentQuery.offset(pageable.getOffset())
                     .limit(pageable.getPageSize());
         }
 
-        List<OrderItemSummaryDto> content = query.fetch();
+        List<OrderItemSummaryDto> content = contentQuery.fetch();
 
-        //카운트 쿼리
         JPAQuery<Long> countQuery = queryFactory
                 .select(orderItem.count())
                 .from(orderItem)
+                .join(orderItem.product, product)
                 .join(orderItem.order, order)
                 .join(orderItem.status, orderStatus)
-                .where(order.buyer.id.eq(buyerId),
-                        statusEq(statusCode, orderStatus));
+                .where(condition);
 
-        //Page 객체로 반환 (PageableExecutionUtils를 쓰면 카운트 쿼리 최적화 가능)
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 

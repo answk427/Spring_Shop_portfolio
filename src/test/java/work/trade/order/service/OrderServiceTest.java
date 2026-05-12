@@ -120,8 +120,10 @@ class OrderServiceTest {
 
     private Long buyerId;
     private Long sellerId;
+    private Long sellerId2;
     private Long productId1;
     private Long productId2;
+    private Long productId3;
 
     @AfterEach
     void tearDown() {
@@ -139,8 +141,10 @@ class OrderServiceTest {
         //구매자, 판매자 생성
         UserDto buyerDto = createUser("Buyer", "buyer@naver.com", "asdf1234");
         UserDto sellerDto = createUser("Seller", "seller@naver.com", "asdf1234");
+        UserDto sellerDto2 = createUser("Seller2", "seller2@naver.com", "asdf1234");
         buyerId = buyerDto.id();
         sellerId = sellerDto.id();
+        sellerId2 = sellerDto2.id();
 
         //테스트용 잔고 10만원
         walletService.deposit(buyerId, BigDecimal.valueOf(100000L));
@@ -155,10 +159,15 @@ class OrderServiceTest {
         ProductCreateRequestDto productCreateRequestDto2 = new ProductCreateRequestDto(
                 category.getId(), "Product2", "Product2 DESC", new BigDecimal(2222), 200);
 
+        ProductCreateRequestDto productCreateRequestDto3 = new ProductCreateRequestDto(
+                category.getId(), "Product3", "Product3 DESC", new BigDecimal(3333), 300);
+
         ProductDto product1 = productService.createProduct(productCreateRequestDto1, sellerDto.id());
         ProductDto product2 = productService.createProduct(productCreateRequestDto2, sellerDto.id());
+        ProductDto product3 = productService.createProduct(productCreateRequestDto3, sellerDto2.id());
         productId1 = product1.id();
         productId2 = product2.id();
+        productId3 = product3.id();
     }
 
     @Transactional
@@ -451,6 +460,54 @@ class OrderServiceTest {
 
         //then
         assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void getSellerOrdersByStatus() {
+        //given
+        //주문 2개 생성 (둘 다 PENDING)
+        //productId1의 seller = sellerId, productId3의 seller = sellerId2
+        addToCart(buyerId, productId1, 10);
+        addToCart(buyerId, productId3, 100);
+        OrderDto order1 = orderService.createOrderFromCart(buyerId);
+
+        addToCart(buyerId, productId1, 12);
+        OrderDto order2 = orderService.createOrderFromCart(buyerId);
+
+        //하나 상태 변경 (CONFIRMED)
+        orderService.confirmOrder(order2.id(), buyerId);
+
+        //N+1 확인 위해 영속성 컨텍스트 초기화
+        //상태변경 반영 위해 flush
+        em.flush();
+        em.clear();
+
+        //when
+        System.out.println("================= [로직 시작] =================");
+        Page<OrderItemSummaryDto> resultSeller1 =
+                orderService.getSellerOrderItemsByStatus(sellerId, null, Pageable.unpaged());
+
+        Page<OrderItemSummaryDto> resultSeller2 =
+                orderService.getSellerOrderItemsByStatus(sellerId2, null, Pageable.unpaged());
+        System.out.println("================= [로직 종료] =================");
+
+        List<OrderItemSummaryDto> contentSeller1 = resultSeller1.getContent();
+        List<OrderItemSummaryDto> contentSeller2 = resultSeller2.getContent();
+
+        //then
+        //1. 개수
+        assertThat(contentSeller1).hasSize(2);
+        assertThat(contentSeller2).hasSize(1);
+
+        OrderItemSummaryDto dto1BySeller1 = contentSeller1.get(0);
+        OrderItemSummaryDto dto2BySeller1 = contentSeller1.get(1);
+        OrderItemSummaryDto dtoBySeller2 = contentSeller2.get(0);
+
+        //3. 상태 검증
+        assertThat(dto1BySeller1.productName()).isEqualTo("Product1");
+        assertThat(dto1BySeller1.productName()).isEqualTo("Product1");
+        assertThat(dtoBySeller2.productName()).isEqualTo("Product3");
     }
 
     @Test

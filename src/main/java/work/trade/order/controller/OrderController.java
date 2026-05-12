@@ -55,6 +55,16 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @GetMapping("/seller/status/{status}")
+    public ResponseEntity<Page<OrderItemSummaryDto>> getSellerOrdersByStatus(
+            @PathVariable("status") String statusCode,
+            Pageable pageable,
+            Authentication authentication) {
+        Long sellerId = Long.parseLong(authentication.getName());
+        Page<OrderItemSummaryDto> orders = orderService.getSellerOrderItemsByStatus(sellerId, statusCode, pageable);
+        return ResponseEntity.ok(orders);
+    }
+
 //Order 전체단위 Status 변경*******************************//
 
     @PatchMapping("/{orderId}/confirm")

@@ -6,5 +6,6 @@ import work.trade.order.dto.response.orderItem.OrderItemSummaryDto;
 
 public interface OrderItemRepositoryCustom {
     Page<OrderItemSummaryDto> findOrderItemsWithPagination(Long buyerId, String statusCode, Pageable pageable);
+    Page<OrderItemSummaryDto> findSellerOrderItemsWithPagination(Long buyerId, String statusCode, Pageable pageable);
 
 }
