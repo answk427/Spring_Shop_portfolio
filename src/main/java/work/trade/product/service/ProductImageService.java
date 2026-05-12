@@ -60,6 +60,12 @@ public class ProductImageService {
         return productImages.stream().map(mapper::toDto).toList();
     }
 
+    public List<ProductImageDto> getDetailImagesList(Long productId) {
+        List<ProductImage> productImages = productImageRepository.findByProductIdAndThumbnailFalse(productId);
+
+        return productImages.stream().map(mapper::toDto).toList();
+    }
+
     public List<String> getImagePathList(Long productId, List<Long> imageIds) {
         return productImageRepository
                 .findByIdInAndProduct_Id(imageIds, productId)

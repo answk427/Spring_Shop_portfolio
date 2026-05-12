@@ -17,6 +17,6 @@ file:
   storage:
     type: local
   upload:
-    dir: uploads
+    dir: C:\springTrade\uploads
   display:
     prefix: "http://localhost:8080/display?filename="

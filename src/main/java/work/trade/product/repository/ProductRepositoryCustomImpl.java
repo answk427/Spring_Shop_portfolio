@@ -74,7 +74,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                         product.stock,       // 4. Integer stock
                         category.name,       // 5. String categoryName
                         user.name,           // 6. String sellerName
-                        Expressions.asString(thumbnailSubQuery).coalesce("default.png"),
+                        thumbnailSubQuery,
                         product.createdAt    // 7. LocalDateTime createdAt
                 ))
                 .from(product)
@@ -117,7 +117,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                         product.stock,       // 4. Integer stock
                         category.name,       // 5. String categoryName
                         user.name,           // 6. String sellerName
-                        Expressions.asString(thumbnailSubQuery).coalesce("default.png"),
+                        thumbnailSubQuery,
                         product.createdAt    // 7. LocalDateTime createdAt
                 ))
                 .from(product)

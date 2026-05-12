@@ -1,0 +1,16 @@
+file:
+  storage:
+    type: s3
+  display:
+    prefix: "https://${AWS_CLOUDFRONT_DOMAIN}"
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET_NAME}
+    region: ${AWS_S3_REGION}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY_ID}
+
+  cloudfront:
+    domain: ${AWS_CLOUDFRONT_DOMAIN}

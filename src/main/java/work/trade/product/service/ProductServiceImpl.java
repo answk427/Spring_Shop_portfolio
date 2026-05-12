@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import work.trade.file.service.FileUploadService;
+import work.trade.file.util.ProductImageFileUrlResolver;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.domain.ProductImage;
@@ -45,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductImageService productImageService;
 
     private final ProductMapper mapper;
+    private final ProductImageFileUrlResolver fileUrlResolver;
 
 //*******************************//
 
@@ -61,6 +64,22 @@ public class ProductServiceImpl implements ProductService {
         product.addProductImage(productImage);
     }
 
+    private PageImpl<ProductSummaryDto> convertSummaryDtoUrl(Pageable pageable, Page<ProductSummaryDto> page) {
+        List<ProductSummaryDto> converted = page.getContent().stream()
+                .map(dto -> new ProductSummaryDto(
+                        dto.id(),
+                        dto.name(),
+                        dto.price(),
+                        dto.stock(),
+                        dto.categoryName(),
+                        dto.sellerName(),
+                        fileUrlResolver.resolve(dto.thumbnailUrl()),
+                        dto.createdAt()
+                ))
+                .toList();
+
+        return new PageImpl<>(converted, pageable, page.getTotalElements());
+    }
 //*******************************//
 
     @Override
@@ -113,19 +132,22 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductSummaryDto> findProducts(Pageable pageable) {
-        return productRepository.findProductsWithPagination(pageable, null, null);
+        Page<ProductSummaryDto> page = productRepository.findProductsWithPagination(pageable, null, null);
+        return convertSummaryDtoUrl(pageable, page);
     }
 
     @Override
     public Page<ProductSummaryDto> findProductsByCategory(Pageable pageable, Long categoryId) {
         categoryRepository.findById(categoryId).
                 orElseThrow(() -> new CategoryNotFoundException());
-        return productRepository.findProductsWithPagination(pageable, categoryId, null);
+        Page<ProductSummaryDto> page = productRepository.findProductsWithPagination(pageable, categoryId, null);
+        return convertSummaryDtoUrl(pageable, page);
     }
 
     @Override
     public Page<ProductSummaryDto> findProductsBySellerId(Pageable pageable, Long sellerId) {
-        return productRepository.findProductsWithPagination(pageable, null, sellerId);
+        Page<ProductSummaryDto> page = productRepository.findProductsWithPagination(pageable, null, sellerId);
+        return convertSummaryDtoUrl(pageable, page);
     }
 
     @Override
@@ -193,6 +215,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable) {
-        return productRepository.searchProducts(categoryId, keyword, pageable);
+        Page<ProductSummaryDto> page = productRepository.searchProducts(categoryId, keyword, pageable);
+        return convertSummaryDtoUrl(pageable, page);
     }
 }
