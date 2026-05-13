@@ -1,5 +1,6 @@
 package work.trade.order.domain.constant;
 
+ //OrderStatus의 Code와 일치
 public class OrderStatusConstant {
     public static final String PENDING = "PENDING";
     public static final String CONFIRMED = "CONFIRMED";

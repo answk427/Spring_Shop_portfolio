@@ -83,7 +83,8 @@ class CartControllerTest {
 //*******************************//
 
     private String testUserToken;
-    private Long userId;
+    private Long buyerId;
+    private Long sellerId;
     private Long productId1;
     private Long productId2;
 
@@ -102,22 +103,26 @@ class CartControllerTest {
     void Init() {
         UserCreateRequestDto userCreateDto = new UserCreateRequestDto("test@naver.com", "12341414", "testUser", null);
         UserDto userDto = userService.createUser(userCreateDto);
-        userId = userDto.id();
+        buyerId = userDto.id();
+
+        UserCreateRequestDto sellerCreateDto = new UserCreateRequestDto("seller@naver.com", "12341414", "testUser", null);
+        UserDto sellerDto = userService.createUser(sellerCreateDto);
+        sellerId = sellerDto.id();
 
         ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(
                 1L, "product", "product Desc", BigDecimal.valueOf(111111), 1234566);
 
-        ProductDto product = productService.createProduct(productCreateDto, userId);
+        ProductDto product = productService.createProduct(productCreateDto, sellerId);
         productId1 = product.id();
 
         ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(
                 1L, "product2", "product2 Desc", BigDecimal.valueOf(1234566),1234566);
 
-        ProductDto product2 = productService.createProduct(productCreateDto2, userId);
+        ProductDto product2 = productService.createProduct(productCreateDto2, sellerId);
         productId2 = product2.id();
 
         //테스트용 토큰 생성
-        testUserToken = jwtTokenUtil.createAccessToken(userId.toString(), List.of(Role.USER));
+        testUserToken = jwtTokenUtil.createAccessToken(buyerId.toString(), List.of(Role.USER));
     }
 
 //*******************************//

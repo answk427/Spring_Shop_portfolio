@@ -55,11 +55,21 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @GetMapping("/seller/status/{status}")
+    public ResponseEntity<Page<OrderItemSummaryDto>> getSellerOrdersByStatus(
+            @PathVariable("status") String statusCode,
+            Pageable pageable,
+            Authentication authentication) {
+        Long sellerId = Long.parseLong(authentication.getName());
+        Page<OrderItemSummaryDto> orders = orderService.getSellerOrderItemsByStatus(sellerId, statusCode, pageable);
+        return ResponseEntity.ok(orders);
+    }
+
 //Order 전체단위 Status 변경*******************************//
 
     @PatchMapping("/{orderId}/confirm")
     public ResponseEntity<OrderDto> confirmOrder(
-            @PathVariable Long orderId,
+            @PathVariable("orderId") Long orderId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderDto orderDto = orderService.confirmOrder(orderId, userId);
@@ -68,7 +78,7 @@ public class OrderController {
 
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<OrderDto> cancelOrder(
-            @PathVariable Long orderId,
+            @PathVariable("orderId") Long orderId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderDto orderDto = orderService.cancelOrder(orderId, userId);
@@ -79,7 +89,7 @@ public class OrderController {
 
     @PatchMapping("/items/{orderItemId}/ship")
     public ResponseEntity<OrderItemDto> shipOrderItem(
-            @PathVariable Long orderItemId,
+            @PathVariable("orderItemId") Long orderItemId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderItemDto orderItemDto = orderService.shipOrderItem(orderItemId, userId);
@@ -88,7 +98,7 @@ public class OrderController {
 
     @PatchMapping("/items/{orderItemId}/deliver")
     public ResponseEntity<OrderItemDto> deliverOrderItem(
-            @PathVariable Long orderItemId,
+            @PathVariable("orderItemId") Long orderItemId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderItemDto orderItemDto = orderService.deliverOrderItem(orderItemId, userId);
@@ -97,7 +107,7 @@ public class OrderController {
 
     @PatchMapping("/items/{orderItemId}/cancel")
     public ResponseEntity<OrderItemDto> cancelOrderItem(
-            @PathVariable Long orderItemId,
+            @PathVariable("orderItemId") Long orderItemId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderItemDto orderItemDto = orderService.cancelOrderItem(orderItemId, userId);
@@ -106,7 +116,7 @@ public class OrderController {
 
     @PatchMapping("/items/{orderItemId}/return")
     public ResponseEntity<OrderItemDto> returnOrderItem(
-            @PathVariable Long orderItemId,
+            @PathVariable("orderItemId") Long orderItemId,
             Authentication authentication) {
         Long userId = Long.parseLong(authentication.getName());
         OrderItemDto orderItemDto = orderService.returnOrderItem(orderItemId, userId);

@@ -141,10 +141,10 @@ class WalletServiceTest {
     void depositByRefund_success() {
         // given
         BigDecimal amount = new BigDecimal("2000");
-        AccountRecordType refundType = getAccountRecordType(AccountRecordTypeConstant.REFUND);
+        AccountRecordType refundType = getAccountRecordType(AccountRecordTypeConstant.REFUND_TO_BUYER);
 
         given(walletRepository.findByUser_Id(userId)).willReturn(Optional.of(wallet));
-        given(accountRecordTypeRepository.findById(AccountRecordTypeConstant.REFUND))
+        given(accountRecordTypeRepository.findById(AccountRecordTypeConstant.REFUND_TO_BUYER))
                 .willReturn(Optional.of(refundType));
 
         // when
@@ -153,6 +153,6 @@ class WalletServiceTest {
         // then
         assertThat(wallet.getBalance()).isEqualByComparingTo(new BigDecimal("12000"));
         // 기록이 REFUND 타입인지 확인하는 로직이 서비스에 잘 녹아있는지 검증
-        verify(accountRecordTypeRepository).findById(AccountRecordTypeConstant.REFUND);
+        verify(accountRecordTypeRepository).findById(AccountRecordTypeConstant.REFUND_TO_BUYER);
     }
 }

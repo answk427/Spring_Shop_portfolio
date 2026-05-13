@@ -114,7 +114,7 @@ class OrderControllerTest {
         OrderStatusDto orderStatusDto = new OrderStatusDto(statusCode, "name", "desc");
 
         OrderItemSummaryDto summary = new OrderItemSummaryDto(
-                10L, "productName", orderStatusDto, 10,
+                10L, 1L, "productName", orderStatusDto, 10,
                 new BigDecimal(10000), null);
 
         Page<OrderItemSummaryDto> pageResponse = new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1);

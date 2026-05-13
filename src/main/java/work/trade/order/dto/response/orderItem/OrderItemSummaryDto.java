@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 public record OrderItemSummaryDto(
         Long id,
+        Long orderId,
         String productName,
         OrderStatusDto status,
         Integer quantity,
