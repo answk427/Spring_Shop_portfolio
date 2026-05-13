@@ -187,8 +187,12 @@ public class ProductServiceImpl implements ProductService {
 
         //썸네일 추가
         if (thumbnail != null && !thumbnail.isEmpty()) {
+            product.getProductImages()
+                    .removeIf(img -> Boolean.TRUE.equals(img.getThumbnail()));
+
             saveProductImage(product, thumbnail, true, 0);
         }
+
         // 새로운 이미지 추가
         if (newImages != null && !newImages.isEmpty()) {
             for (int i=0; i<newImages.size(); ++i) {
