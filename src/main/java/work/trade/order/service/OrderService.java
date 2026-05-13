@@ -4,12 +4,14 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.trade.cart.dto.response.CartItemDto;
 import work.trade.cart.exception.CartEmptyException;
 import work.trade.cart.service.CartService;
+import work.trade.file.util.FileUrlResolver;
 import work.trade.order.domain.Order;
 import work.trade.order.domain.OrderItem;
 import work.trade.order.domain.OrderStatus;
@@ -56,6 +58,27 @@ public class OrderService {
 
     private final EntityManager em;
     private final OrderItemRepository orderItemRepository;
+
+    private final FileUrlResolver fileUrlResolver;
+
+//*******************************//
+
+    private PageImpl<OrderItemSummaryDto> convertSummaryDtoUrl(Pageable pageable, Page<OrderItemSummaryDto> page) {
+        List<OrderItemSummaryDto> converted = page.getContent().stream()
+                .map(dto -> new OrderItemSummaryDto(
+                        dto.id(),
+                        dto.orderId(),
+                        dto.productName(),
+                        fileUrlResolver.resolve(dto.thumbnailUrl()),
+                        dto.status(),
+                        dto.quantity(),
+                        dto.subtotalPrice(),
+                        dto.createdAt()
+                ))
+                .toList();
+
+        return new PageImpl<>(converted, pageable, page.getTotalElements());
+    }
 
 //*******************************//
 
@@ -144,7 +167,8 @@ public class OrderService {
                     .orElseThrow(OrderStatusNotFoundException::new);
         }
 
-        return orderItemRepository.findOrderItemsWithPagination(userId, statusCode, pageable);
+        Page<OrderItemSummaryDto> page = orderItemRepository.findOrderItemsWithPagination(userId, statusCode, pageable);
+        return convertSummaryDtoUrl(pageable, page);
     }
 
     //판매자의 모든 주문된 판매상품 조회
@@ -155,7 +179,9 @@ public class OrderService {
             orderStatusRepository.findById(statusCode)
                     .orElseThrow(OrderStatusNotFoundException::new);
         }
-        return orderItemRepository.findSellerOrderItemsWithPagination(sellerId, statusCode, pageable);
+
+        Page<OrderItemSummaryDto> page = orderItemRepository.findSellerOrderItemsWithPagination(sellerId, statusCode, pageable);
+        return convertSummaryDtoUrl(pageable, page);
     }
 
 //Order Status 변경 함수*******************************//

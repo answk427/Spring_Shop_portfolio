@@ -19,6 +19,7 @@ import static work.trade.order.domain.QOrder.order;
 import static work.trade.order.domain.QOrderItem.orderItem;
 import static work.trade.order.domain.QOrderStatus.orderStatus;
 import static work.trade.product.domain.QProduct.product;
+import static work.trade.product.domain.QProductImage.productImage;
 
 @RequiredArgsConstructor
 public class OrderItemRepositoryCustomImpl implements OrderItemRepositoryCustom {
@@ -47,6 +48,10 @@ public class OrderItemRepositoryCustomImpl implements OrderItemRepositoryCustom 
                 .join(orderItem.product, product)
                 .join(orderItem.order, order)
                 .join(orderItem.status, orderStatus)
+                // ProductImage와 조인 (이미지가 없을 수도 있으므로 leftJoin)
+                .leftJoin(product.productImages, productImage)
+                // 조인 조건 혹은 Where절에 thumbnail 조건 추가
+                .on(productImage.thumbnail.isTrue())
                 .where(condition);
 
         // 2. Content 쿼리: baseQuery 정보를 기반으로 select/orderBy/offset/limit 추가
@@ -55,6 +60,7 @@ public class OrderItemRepositoryCustomImpl implements OrderItemRepositoryCustom 
                         orderItem.id,
                         order.id,
                         product.name,
+                        productImage.imageUrl,
                         Projections.constructor(OrderStatusDto.class,
                                 orderStatus.code,
                                 orderStatus.name,

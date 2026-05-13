@@ -9,6 +9,7 @@ public record OrderItemSummaryDto(
         Long id,
         Long orderId,
         String productName,
+        String thumbnailUrl,
         OrderStatusDto status,
         Integer quantity,
         BigDecimal subtotalPrice,
@@ -16,3 +17,4 @@ public record OrderItemSummaryDto(
 ) {
 
 }
+
