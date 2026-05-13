@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.trade.user.domain.User;
@@ -13,6 +15,7 @@ import work.trade.wallet.domain.AccountRecord;
 import work.trade.wallet.domain.AccountRecordType;
 import work.trade.wallet.domain.Wallet;
 import work.trade.wallet.domain.constant.AccountRecordTypeConstant;
+import work.trade.wallet.dto.response.AccountRecordDto;
 import work.trade.wallet.dto.response.WalletDto;
 import work.trade.wallet.exception.AccountRecordTypeNotFoundException;
 import work.trade.wallet.exception.WalletDuplicateException;
@@ -108,7 +111,7 @@ public class WalletService {
         Wallet wallet = getWallet(userId);
         wallet.deductByRefund(amount);
 
-        saveAccountRecord(AccountRecordTypeConstant.REFUND, amount, wallet);
+        saveAccountRecord(AccountRecordTypeConstant.REFUND_FROM_SELLER, amount, wallet);
 
         log.info("userId:{}, 환불 잔고 차감 완료 amount:{}", userId, amount);
     }
@@ -132,28 +135,50 @@ public class WalletService {
         Wallet wallet = getWallet(userId);
         wallet.deposit(amount);
 
-        saveAccountRecord(AccountRecordTypeConstant.REFUND, amount, wallet);
+        saveAccountRecord(AccountRecordTypeConstant.REFUND_TO_BUYER, amount, wallet);
 
         log.info("userId:{}, 환불 잔고 증가 완료 amount:{}", userId, amount);
     }
 
     // 계좌로 출금
     public void payout(Long userId, BigDecimal amount) {
-        log.info("userId:{}, 계좌로 출금 시작 amount:{}", userId, amount);
-
         Wallet wallet = getWallet(userId);
+        log.info("userId:{}, 계좌로 출금 시작 amount:{}, 잔액:{}", userId, amount, wallet.getBalance());
+
+
         wallet.deduct(amount);
 
         saveAccountRecord(AccountRecordTypeConstant.WITHDRAWAL, amount, wallet);
 
-        log.info("userId:{}, 계좌로 출금 완료 amount:{}", userId, amount);
+        log.info("userId:{}, 계좌로 출금 완료 amount:{}, 잔액:{}", userId, amount, wallet.getBalance());
     }
-
 
     @Transactional(readOnly = true)
     public BigDecimal getBalance(Long userId) {
         Wallet wallet = getWallet(userId);
         return wallet.getBalance();
+    }
+
+    @Transactional(readOnly = true)
+    public WalletDto findWallet(Long userId) {
+        Wallet wallet = walletRepository.findByUser_Id(userId).
+                orElseThrow(() -> new WalletNotFoundException(userId));
+
+        return mapper.toDto(wallet);
+    }
+
+    public void testIncreaseAmount(Long userId, BigDecimal amount) {
+        log.info("userId:{}, test용으로 잔액 증가", userId);
+        Wallet wallet = getWallet(userId);
+        wallet.deposit(amount);
+    }
+
+//AccountRecord----------------------------//
+
+    public Page<AccountRecordDto> findAccountRecords(Long userId, Pageable pageable) {
+        return accountRecordRepository
+                .findByWallet_Id(getWallet(userId).getId(), pageable)
+                .map(mapper::toDto);
     }
 }
 
