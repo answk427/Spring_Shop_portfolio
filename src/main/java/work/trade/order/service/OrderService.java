@@ -30,8 +30,8 @@ import work.trade.product.domain.Product;
 import work.trade.product.exception.ProductNotFoundException;
 import work.trade.product.repository.ProductRepository;
 import work.trade.user.domain.User;
+import work.trade.user.exception.UserForbiddenException;
 import work.trade.user.exception.UserNotFoundException;
-import work.trade.user.exception.UserUnAuthorizedException;
 import work.trade.user.repository.UserRepository;
 import work.trade.wallet.service.WalletService;
 
@@ -301,7 +301,7 @@ public class OrderService {
 
         if (!userId.equals(orderItem.getOrder().getBuyer().getId()) &&
         !userId.equals(orderItem.getProduct().getSeller().getId())) {
-            throw new UserUnAuthorizedException();
+            throw new UserForbiddenException();
         }
 
         return orderItem;
