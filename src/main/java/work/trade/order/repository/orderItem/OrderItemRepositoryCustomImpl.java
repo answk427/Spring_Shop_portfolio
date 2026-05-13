@@ -53,6 +53,7 @@ public class OrderItemRepositoryCustomImpl implements OrderItemRepositoryCustom 
         JPAQuery<OrderItemSummaryDto> contentQuery = baseQuery
                 .select(Projections.constructor(OrderItemSummaryDto.class,
                         orderItem.id,
+                        order.id,
                         product.name,
                         Projections.constructor(OrderStatusDto.class,
                                 orderStatus.code,

@@ -246,8 +246,7 @@ public class OrderService {
     }
 
     public OrderItemDto cancelOrderItem(Long orderItemId, Long userId) {
-        OrderItem orderItem = advanceOrderItemStatusInternal
-                (orderItemId, userId, OrderStatusConstant.CANCELLED);
+        OrderItem orderItem = getOrderItem(orderItemId, userId);
 
         //재고 복구(LOCK 필요)
         Long productId = orderItem.getProduct().getId();
@@ -300,9 +299,11 @@ public class OrderService {
         OrderItem orderItem = orderItemRepository.findById(orderItemId).
                 orElseThrow(() -> new OrderItemNotFoundException());
 
-        if (!userId.equals(orderItem.getOrder().getBuyer().getId())) {
+        if (!userId.equals(orderItem.getOrder().getBuyer().getId()) &&
+        !userId.equals(orderItem.getProduct().getSeller().getId())) {
             throw new UserUnAuthorizedException();
         }
+
         return orderItem;
     }
 

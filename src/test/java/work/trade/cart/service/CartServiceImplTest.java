@@ -18,7 +18,6 @@ import work.trade.product.dto.request.ProductCreateRequestDto;
 import work.trade.product.repository.CategoryRepository;
 import work.trade.product.service.ProductService;
 import work.trade.user.dto.request.UserCreateRequestDto;
-import work.trade.user.dto.response.UserDto;
 import work.trade.user.service.UserService;
 
 import java.math.BigDecimal;
@@ -49,7 +48,8 @@ class CartServiceImplTest {
 
 //******************************//
 
-    private Long userId;
+    private Long buyerId;
+    private Long sellerId;
     private Long productId1;
     private Long productId2;
 
@@ -58,14 +58,17 @@ class CartServiceImplTest {
     void Init() {
         UserCreateRequestDto userCreateDto = new UserCreateRequestDto(
                 "testUser", "12341414", "test@naver.com", null);
-        UserDto userDto = userService.createUser(userCreateDto);
-        userId = userDto.id();
+        buyerId = userService.createUser(userCreateDto).id();
+
+        UserCreateRequestDto sellerCreateDto = new UserCreateRequestDto(
+                "testSeller", "12341414", "testSeller@naver.com", null);
+        sellerId = userService.createUser(sellerCreateDto).id();
 
         ProductCreateRequestDto productCreateDto = new ProductCreateRequestDto(1L, "product", "productDesc", new BigDecimal(111111), 1234566);
-        productId1 = productService.createProduct(productCreateDto, userId).id();
+        productId1 = productService.createProduct(productCreateDto, sellerId).id();
 
         ProductCreateRequestDto productCreateDto2 = new ProductCreateRequestDto(1L, "product2", "product2Desc", new BigDecimal(111111), 1234566);
-        productId2 = productService.createProduct(productCreateDto2, userId).id();
+        productId2 = productService.createProduct(productCreateDto2, sellerId).id();
     }
 
 //******************************//
@@ -80,7 +83,7 @@ class CartServiceImplTest {
 
         //when(기존에 없던 상품 추가)
         System.out.println("================= [로직 시작] =================");
-        CartDto cartDto = cartService.addToCart(cartAddRequestDto, userId);
+        CartDto cartDto = cartService.addToCart(cartAddRequestDto, buyerId);
         System.out.println("================= [로직 종료] =================");
 
         //then
@@ -88,7 +91,7 @@ class CartServiceImplTest {
         assertThat(cartDto.quantity()).isEqualTo(cartAddRequestDto.getQuantity());
 
         //when(기존 상품에 수량 추가)
-        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto, userId);
+        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto, buyerId);
 
         //then
         assertThat(cartDto2.product().id()).isEqualTo(productId1);
@@ -108,15 +111,15 @@ class CartServiceImplTest {
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
         CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
-        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
-        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
+        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, buyerId);
+        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, buyerId);
 
         //N+1문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
         //when
         System.out.println("================= [로직 시작] =================");
-        List<CartDto> myCart = cartService.getMyCart(userId);
+        List<CartDto> myCart = cartService.getMyCart(buyerId);
         System.out.println("================= [로직 종료] =================");
 
         CartDto myCartDto1 = myCart.get(0);
@@ -140,7 +143,7 @@ class CartServiceImplTest {
     void updateQuantity() {
         //given
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
-        CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, userId);
+        CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, buyerId);
 
         CartUpdateRequestDto cartUpdateRequestDto = new CartUpdateRequestDto(4444);
 
@@ -149,7 +152,7 @@ class CartServiceImplTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
-        CartDto updatedCartDto = cartService.updateQuantity(cartUpdateRequestDto, createdCartDto.id(), userId);
+        CartDto updatedCartDto = cartService.updateQuantity(cartUpdateRequestDto, createdCartDto.id(), buyerId);
         System.out.println("================= [로직 종료] =================");
 
         //then
@@ -162,18 +165,18 @@ class CartServiceImplTest {
     void deleteCartItem() {
         //given
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
-        CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, userId);
+        CartDto createdCartDto = cartService.addToCart(cartAddRequestDto, buyerId);
 
         //N+1문제 확인 위해 영속성 컨텍스트 초기화
         em.clear();
 
         //when
         System.out.println("================= [로직 시작] =================");
-        cartService.deleteCartItem(createdCartDto.id(), userId);
+        cartService.deleteCartItem(createdCartDto.id(), buyerId);
         System.out.println("================= [로직 종료] =================");
 
         //then
-        List<CartDto> myCart = cartService.getMyCart(userId);
+        List<CartDto> myCart = cartService.getMyCart(buyerId);
 
         assertThat(myCart).isEmpty();
 
@@ -189,16 +192,16 @@ class CartServiceImplTest {
 
         CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
-        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
-        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
+        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, buyerId);
+        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, buyerId);
 
         //when
         System.out.println("================= [로직 시작] =================");
-        cartService.deleteAllCartItems(userId);
+        cartService.deleteAllCartItems(buyerId);
         System.out.println("================= [로직 종료] =================");
 
         //then
-        List<CartDto> myCart = cartService.getMyCart(userId);
+        List<CartDto> myCart = cartService.getMyCart(buyerId);
         assertThat(myCart).isEmpty();
     }
 
@@ -208,12 +211,12 @@ class CartServiceImplTest {
         CartAddRequestDto cartAddRequestDto = new CartAddRequestDto(productId1, 100);
         CartAddRequestDto cartAddRequestDto2 = new CartAddRequestDto(productId2, 100);
 
-        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, userId);
-        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, userId);
+        CartDto cartDto1 = cartService.addToCart(cartAddRequestDto, buyerId);
+        CartDto cartDto2 = cartService.addToCart(cartAddRequestDto2, buyerId);
 
         //when
         System.out.println("================= [로직 시작] =================");
-        List<CartItemDto> cartItems = cartService.getCartItemIdsForOrder(userId);
+        List<CartItemDto> cartItems = cartService.getCartItemIdsForOrder(buyerId);
         System.out.println("================= [로직 종료] =================");
 
         //then

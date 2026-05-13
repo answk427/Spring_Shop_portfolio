@@ -18,6 +18,7 @@ import work.trade.product.exception.ProductNotFoundException;
 import work.trade.product.repository.ProductRepository;
 import work.trade.user.domain.User;
 import work.trade.user.exception.UserNotFoundException;
+import work.trade.user.exception.UserUnAuthorizedException;
 import work.trade.user.repository.UserRepository;
 
 import java.util.List;
@@ -43,6 +44,11 @@ public class CartServiceImpl implements CartService{
         Product product = productRepository.findByIdFetchJoin(dto.getProductId())
                 .orElseThrow(() -> new ProductNotFoundException());
 
+        if (userId.equals(product.getSeller().getId())) {
+            log.info("구매자와 판매자가 같음. userId: {}, sellerId: {}",
+                    userId, product.getSeller().getId());
+            throw new UserUnAuthorizedException();
+        }
         //재고가 충분한지 확인
         product.canDecreaseStock(dto.getQuantity());
 
