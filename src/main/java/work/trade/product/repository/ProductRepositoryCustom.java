@@ -4,8 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import work.trade.product.dto.response.ProductSummaryDto;
 
-public interface ProductRepositoryCustom {
-    Page<ProductSummaryDto> findProductsWithPagination(Pageable pageable, Long categoryId, Long sellerId);
+import java.util.List;
 
-    Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable);
+public interface ProductRepositoryCustom {
+    Page<ProductSummaryDto> findProductsWithPagination(Pageable pageable, List<Long> categoryIds, Long sellerId);
+
+    Page<ProductSummaryDto> searchProducts(List<Long> categoryIds, String keyword, Pageable pageable);
 }

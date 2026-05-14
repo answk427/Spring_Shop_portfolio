@@ -47,14 +47,15 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
         return sellerId != null ? product.seller.id.eq(sellerId) : null;
     }
 
-    private BooleanExpression categoryIdEq(Long categoryId) {
-        return categoryId != null? product.category.id.eq(categoryId) : null;
+    private BooleanExpression categoryIdEq(List<Long> categoryIds) {
+        return categoryIds != null && !categoryIds.isEmpty() ?
+                product.category.id.in(categoryIds) : null;
     }
 
 //*******************************//
 
     @Override
-    public Page<ProductSummaryDto> findProductsWithPagination(Pageable pageable, Long categoryId, Long sellerId) {
+    public Page<ProductSummaryDto> findProductsWithPagination(Pageable pageable, List<Long> categoryIds, Long sellerId) {
         //서브쿼리 구분 위해 객체 생성
         QProductImage subImage = new QProductImage("subImage");
 
@@ -81,7 +82,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 .join(product.category, category)
                 .join(product.seller, user)
                 .where(
-                        categoryIdEq(categoryId),
+                        categoryIdEq(categoryIds),
                         sellerIdEq(sellerId)
                 )
                 .offset(pageable.getOffset())
@@ -92,13 +93,13 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
         JPAQuery<Long> countQuery = queryFactory
                 .select(product.count())
                 .from(product)
-                .where(categoryIdEq(categoryId), sellerIdEq(sellerId));
+                .where(categoryIdEq(categoryIds), sellerIdEq(sellerId));
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     @Override
-    public Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable) {
+    public Page<ProductSummaryDto> searchProducts(List<Long> categoryIds, String keyword, Pageable pageable) {
         //서브쿼리 구분 위해 객체 생성
         QProductImage subImage = new QProductImage("subImage");
 
@@ -124,7 +125,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 .join(product.category, category)
                 .join(product.seller, user)
                 .where(
-                        categoryIdEq(categoryId),
+                        categoryIdEq(categoryIds),
                         matchKeyword(keyword)
                 )
                 .offset(pageable.getOffset())
@@ -136,7 +137,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 .from(product)
                 .join(product.category, category)
                 .where(
-                        categoryIdEq(categoryId),
+                        categoryIdEq(categoryIds),
                         matchKeyword(keyword)
                 );
 
