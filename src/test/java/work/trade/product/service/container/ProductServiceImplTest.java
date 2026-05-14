@@ -362,16 +362,19 @@ class ProductServiceImplTest {
 
         //when
         System.out.println("================= [로직 시작] =================");
+        //전자제품
         Page<ProductSummaryDto> productsByCategory = productService.findProductsByCategory(PageRequest.of(0, 10), testCategoryId);
         System.out.println("================= [로직 종료] =================");
 
+        //스마트폰
         Page<ProductSummaryDto> productsByOtherCategory = productService.findProductsByCategory(PageRequest.of(0, 10), testCategoryId1);
 
         //then
         //categoryId로 조회 결과
+        //전자제품(categoryId)는 categoryId1의 부모이므로 포함
         assertThat(productsByCategory).isNotNull();
-        assertThat(productsByCategory.getTotalElements()).isEqualTo(2); // 전체 데이터 개수 (count 쿼리 결과)
-        assertThat(productsByCategory.getContent()).hasSize(2);          // 현재 페이지에 담긴 데이터 개수
+        assertThat(productsByCategory.getTotalElements()).isEqualTo(3); // 전체 데이터 개수 (count 쿼리 결과)
+        assertThat(productsByCategory.getContent()).hasSize(3);          // 현재 페이지에 담긴 데이터 개수
 
         //categoryId1로 조회 결과
         assertThat(productsByOtherCategory).isNotNull();

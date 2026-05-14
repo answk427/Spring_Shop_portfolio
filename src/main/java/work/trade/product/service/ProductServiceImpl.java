@@ -140,7 +140,10 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductSummaryDto> findProductsByCategory(Pageable pageable, Long categoryId) {
         categoryRepository.findById(categoryId).
                 orElseThrow(() -> new CategoryNotFoundException());
-        Page<ProductSummaryDto> page = productRepository.findProductsWithPagination(pageable, categoryId, null);
+
+        List<Long> categoryIds = categoryRepository.findAllChildCategoryIds(categoryId);
+
+        Page<ProductSummaryDto> page = productRepository.findProductsWithPagination(pageable, categoryIds, null);
         return convertSummaryDtoUrl(pageable, page);
     }
 
@@ -219,7 +222,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductSummaryDto> searchProducts(Long categoryId, String keyword, Pageable pageable) {
-        Page<ProductSummaryDto> page = productRepository.searchProducts(categoryId, keyword, pageable);
+        List<Long> categoryIds = categoryRepository.findAllChildCategoryIds(categoryId);
+        Page<ProductSummaryDto> page = productRepository.searchProducts(categoryIds, keyword, pageable);
         return convertSummaryDtoUrl(pageable, page);
     }
 }
