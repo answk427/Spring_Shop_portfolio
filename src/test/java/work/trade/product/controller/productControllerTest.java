@@ -318,11 +318,11 @@ class productControllerTest {
         productService.createProduct(dto, testUserId);
 
         // when, then
-        // testCategoryId로 조회 → 2개만 나와야 함
+        // testCategoryId로 조회 → 3개 나와야 함(자식 카테고리 포함)
         mockMvc.perform(get("/api/products/category/" + 1))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.totalElements").value(3));
 
         // category2로 조회 → 1개만 나와야 함
         mockMvc.perform(get("/api/products/category/" + 2))
