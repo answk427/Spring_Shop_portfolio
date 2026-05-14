@@ -74,6 +74,9 @@ dependencies {
 	implementation platform('software.amazon.awssdk:bom:2.31.67')
 	implementation 'software.amazon.awssdk:s3'
 
+	//Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 	//-----------test
 	//lombok
 	testImplementation 'org.projectlombok:lombok'
