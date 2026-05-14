@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
+import work.trade.file.util.ProductImageFileUrlResolver;
 import work.trade.product.domain.Category;
 import work.trade.product.domain.Product;
 import work.trade.product.domain.ProductImage;
@@ -23,6 +24,9 @@ public abstract class ProductMapper {
 
     @Autowired
     protected ProductImageMapper imageMapper;
+
+    @Autowired
+    protected ProductImageFileUrlResolver urlResolver;
 
     //Request -> Entity
 //-------------------------------------//
@@ -57,6 +61,6 @@ public abstract class ProductMapper {
     @Named("toThumbnailUrl")
     protected String toThumbnailUrl(Product product) {
         ProductImageDto thumbnail = toThumbnail(product);
-        return thumbnail != null ? thumbnail.imageUrl() : null;
+        return thumbnail != null ? thumbnail.imageUrl() : urlResolver.resolve(null);
     }
 }
