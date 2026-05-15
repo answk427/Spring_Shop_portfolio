@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import work.trade.cart.dto.response.CartItemDto;
 import work.trade.cart.exception.CartEmptyException;
 import work.trade.cart.service.CartService;
-import work.trade.file.util.FileUrlResolver;
+import work.trade.file.util.ProductImageFileUrlResolver;
 import work.trade.order.domain.Order;
 import work.trade.order.domain.OrderItem;
 import work.trade.order.domain.OrderStatus;
@@ -59,7 +59,7 @@ public class OrderService {
     private final EntityManager em;
     private final OrderItemRepository orderItemRepository;
 
-    private final FileUrlResolver fileUrlResolver;
+    private final ProductImageFileUrlResolver fileUrlResolver;
 
 //*******************************//
 
