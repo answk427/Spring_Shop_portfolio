@@ -66,13 +66,12 @@ Order와 OrderItem 분리:
 상태 흐름:
 PENDING → CONFIRMED → SHIPPED → DELIVERED / CANCELLED / RETURNED
 상태 변화의 일관성을 지키기 위해 변화 가능한 순서를 제약
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/domain/OrderItem.java#L70-L92)
-
 
 특징:
 ✅ 1개 주문에서 일부 상품만 취소/반품 가능
 ✅ 상태 변화에 따른 구매자/판매자 입금/출금 연동
 ```
+[코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/domain/OrderItem.java#L70-L92)
 
 **트러블 슈팅**
 > 처음 설계는 Order(주문) 단위로 상태를 관리하는 것이었습니다.
@@ -93,13 +92,15 @@ PENDING → CONFIRMED → SHIPPED → DELIVERED / CANCELLED / RETURNED
 ✅ Pessimistic Lock
 ✅ Product 조회 시 즉시 Lock 획득
 ✅ 다른 스레드는 Lock이 풀릴 때까지 대기
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepository.java#L24)
 
 검증:
 ✅ 100개 스레드가 10개 재고 동시에 구매 시도 = 정확히 10명 성공 ✓
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/test/java/work/trade/order/service/OrderServiceTest.java#L554-L616)
 
 ```
+[코드 링크1](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepository.java#L24)
+
+[코드 링크2](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/test/java/work/trade/order/service/OrderServiceTest.java#L554-L616)
+
 ---
 
 ### 4️⃣ 쿼리 최적화 (N+1 해결) ⚡
@@ -118,13 +119,14 @@ Entity -> DTO 변환
 
 After (최적화):
 FetchJoin → 1개 쿼리
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/order/OrderRepository.java#L29)
 
 기술:
 ✅ FetchJoin으로 관계 데이터 한 번에 로드
 ✅ QueryDSL로 DTO Projection 최적화
 ```
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/order/OrderRepositoryCustomImpl.java#L22)
+[코드 링크1](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/order/OrderRepository.java#L29)
+
+[코드 링크2](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/order/OrderRepositoryCustomImpl.java#L22)
 
 ---
 
@@ -135,11 +137,9 @@ FetchJoin → 1개 쿼리
 기술:
 ✅ QueryDSL로 복잡한 동적 조건 확장성 확보
 ✅ FullText Index로 검색 최적화
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepositoryCustomImpl.java#L32
-)
-
 ```
-
+[코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepositoryCustomImpl.java#L32
+)
 ---
 ### 6️⃣ 파일 업로드 📁
 ```
@@ -156,10 +156,10 @@ FileUploadService (인터페이스)
 ✅CloudFront로 캐싱, 접근 보안
 ✅DB에는 파일의 경로만 저장. HTTP요청 응답 반환시 FrontCloud의 도메인을 붙여서 URL 반환
    URL을 통째로 저장했을 시 발생하는 문제 방지 
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/file/util/FileUrlResolver.java#L7)
 
 ---
 ```
+[코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/file/util/FileUrlResolver.java#L7)
 
 ---
 ### 7️⃣ 상품 이미지 관리 🖼️
@@ -171,10 +171,11 @@ FileUploadService (인터페이스)
 
 성능 최적화:
 ✅ 목록 조회: LEFT JOIN + 썸네일만 가져오기
-[코드 확인](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/orderItem/OrderItemRepositoryCustomImpl.java#L46-L55)
 
 ✅ 상세 조회: 한번에 모든 이미지를 가져오지 않고 스크롤 할때마다 필요한 이미지 Slice로 반환
 ```
+[코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/orderItem/OrderItemRepositoryCustomImpl.java#L46-L55)
+
 ---
 
 ### 8️⃣ Flyway DB 버전관리 🖼️
