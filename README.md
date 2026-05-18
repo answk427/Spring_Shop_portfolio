@@ -17,9 +17,7 @@ Spring Boot를 이용한 **전자상거래 플랫폼**입니다.
 
 - **GitHub**: https://github.com/answk427/Spring_Shop_portfolio
 - **배포 사이트**: https://jjsdev.duckdns.org
-- **PPT 포트폴리오**: [Projects](https://github.com/answk427/Spring_Shop_portfolio/projects)
-
-- //TODO: PPT 수정
+- **PPT 포트폴리오**: https://docs.google.com/presentation/d/1ZHQb8--vwEnniTyY3q30j5zhzwdCFpUCUzSq9Dzt-3s/edit?usp=sharing
 
 ---
 ## 📚 기술 스택
