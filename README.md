@@ -20,6 +20,15 @@ Spring Boot를 이용한 **전자상거래 플랫폼**입니다.
 - **PPT 포트폴리오**: https://docs.google.com/presentation/d/1ZHQb8--vwEnniTyY3q30j5zhzwdCFpUCUzSq9Dzt-3s/edit?usp=sharing
 
 ---
+
+## 시연 영상
+### 판매 -> 구매 -> 장바구니 -> 주문
+https://github.com/user-attachments/assets/324e111d-95ae-4fba-b9f7-1ccd0c8ca74b
+
+### 주문 -> 주문확정 -> 배송완료
+https://github.com/user-attachments/assets/567b9a0a-614c-4950-aa8d-f27a141c11b4
+
+---
 ## 📚 기술 스택
 
 | 분야 | 기술 |
@@ -138,6 +147,7 @@ FetchJoin → 1개 쿼리
 ```
 [코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepositoryCustomImpl.java#L32
 )
+
 ---
 ### 6️⃣ 파일 업로드 📁
 ```
