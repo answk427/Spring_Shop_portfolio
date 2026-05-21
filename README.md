@@ -148,6 +148,8 @@ FetchJoin → 1개 쿼리
 [코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/product/repository/ProductRepositoryCustomImpl.java#L32
 )
 
+https://github.com/user-attachments/assets/b7732865-1062-4ca2-b4b5-5629140d42f6
+
 ---
 ### 6️⃣ 파일 업로드 📁
 ```
@@ -183,6 +185,8 @@ FileUploadService (인터페이스)
 ✅ 상세 조회: 한번에 모든 이미지를 가져오지 않고 스크롤 할때마다 필요한 이미지 Slice로 반환
 ```
 [코드 링크](https://github.com/answk427/Spring_Shop_portfolio/blob/640a99252657e637d9ce4f28ab87a3097c6af4f8/src/main/java/work/trade/order/repository/orderItem/OrderItemRepositoryCustomImpl.java#L46-L55)
+
+https://github.com/user-attachments/assets/eda45d6d-7007-4827-95fb-2eebbb8227e2
 
 ---
 
